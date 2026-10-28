@@ -27,3 +27,15 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
    own scheduling and exercises (reading, meaning, kanji-from-kana), sharing the event log.
 4. **New cards shouldn't open on a jukujikun word.** A freshly introduced 十 tested with 二十歳 はたち teaches
    nothing about 十. Prefer words whose furigana splits per kanji for a card's first quizzes.
+5. **Teach by difficulty and build vocabulary in order.** Today new kanji come in newspaper-frequency order and a
+   prompt word is picked at random from a kanji's six most common, whether or not she knows the other kanji in it.
+   Instead:
+   - **Words are i+1:** a prompt word may contain only the target plus kanji she already knows (started, or above
+     a stability threshold); otherwise fall back to the kanji alone or a kana-supported word. Harder words
+     (jukujikun, rendaku, rare readings) unlock as the card matures.
+   - **Kanji order is a curriculum, not a list:** frequency blended with JLPT level and with component order
+     (teach 木 before 林 and 森, 言 before 語), so each new kanji is built from parts she has seen.
+   - **Vocabulary follows the kanji:** a word becomes a card of its own once all its kanji are known, easiest and
+     most common first, so the word list grows out of what she can already read.
+   - **Exercise difficulty ramps:** meaning and recognition for new cards, readings next, typed recall and
+     look-alike distractors once a card is stable.
