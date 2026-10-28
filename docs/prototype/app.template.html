@@ -1,0 +1,779 @@
+<title>Robots Kanjiskole</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: one narrow column, like a study notebook. The kanji sits in a 田字格 practice square; everything else is quiet. */
+:root {
+  --paper: #F3F4F7;
+  --sheet: #FFFFFF;
+  --ink: #1A1E29;
+  --muted: #697082;
+  --line: #D7DAE2;
+  --ai: #2B3C8C;        /* 藍 indigo: the one accent */
+  --ai-soft: #E1E5F4;
+  --shu: #C2412B;       /* 朱 vermilion: wrong / Igen */
+  --shu-soft: #F8E3DE;
+  --font-k: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  --font-ui: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #111319; --sheet: #191C25; --ink: #E7E8EE; --muted: #979DAE; --line: #2B2F3C;
+  --ai: #93A5F2; --ai-soft: #222A49; --shu: #F07C66; --shu-soft: #3A221F; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #111319; --sheet: #191C25; --ink: #E7E8EE; --muted: #979DAE; --line: #2B2F3C;
+  --ai: #93A5F2; --ai-soft: #222A49; --shu: #F07C66; --shu-soft: #3A221F; color-scheme: dark }
+
+html, body { background: var(--paper); color: var(--ink); }
+body { font-family: var(--font-ui); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 40px; }
+.wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+button:focus-visible, .cell:focus-visible, .opt:focus-visible { outline: 2px solid var(--ai); outline-offset: 2px; }
+.lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 4px; }
+header h1 { margin: 0; font-family: var(--font-k); font-weight: 700; font-size: 19px; letter-spacing: .02em; text-wrap: balance; }
+header h1 span { color: var(--ai); }
+#sync { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+/* home */
+.today { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.nums { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+.num b { display: block; font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.num b.zero { color: var(--muted); }
+.primary { background: var(--ai); color: var(--sheet); border-radius: 10px; padding: 13px 16px; font-weight: 700; font-size: 16px; width: 100%; }
+.primary:disabled { opacity: .45; cursor: default; }
+.ghost { border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; font-weight: 500; background: var(--sheet); text-align: left; }
+.ghost small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row > * { flex: 1 1 140px; }
+.map { display: flex; flex-direction: column; gap: 8px; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+#grid { display: block; width: 100%; height: auto; border-radius: 6px; }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+
+/* study */
+.study { display: flex; flex-direction: column; gap: 16px; }
+.bar { display: flex; align-items: center; gap: 10px; }
+.bar .track { flex: 1; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--ai); width: 0; transition: width .25s; }
+.count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tag { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.tag.new { color: var(--ai); border-color: var(--ai); }
+
+.square { position: relative; width: min(52vw, 200px); aspect-ratio: 1; max-width: 100%; margin: 0 auto; background: var(--sheet); border: 1.5px solid var(--ai); }
+.square::before, .square::after { content: ""; position: absolute; border: 0 dashed var(--line); }
+.square::before { left: 50%; top: 0; bottom: 0; border-left-width: 1px; }
+.square::after { top: 50%; left: 0; right: 0; border-top-width: 1px; }
+.square .k { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-k); font-weight: 500; font-size: min(38vw, 146px); line-height: 1; z-index: 1; }
+.prompt { text-align: center; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.q { font-size: 13px; color: var(--muted); }
+.word { font-family: var(--font-k); font-size: 40px; font-weight: 500; letter-spacing: .06em; line-height: 1.3; }
+.word em { font-style: normal; color: var(--ai); }
+.word .gap { display: inline-block; width: 1em; height: 1em; border: 1.5px dashed var(--ai); vertical-align: -0.12em; border-radius: 3px; }
+.hint { font-size: 15px; }
+.hint .r { font-family: var(--font-k); font-size: 18px; }
+.gloss-big { font-size: 24px; font-weight: 700; line-height: 1.3; text-wrap: balance; }
+
+.opts { display: grid; gap: 8px; }
+.opts.text { grid-template-columns: minmax(0,1fr); }
+.opts.kanji { grid-template-columns: repeat(4, minmax(0,1fr)); }
+.opts.kana { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.opt { border: 1px solid var(--line); background: var(--sheet); border-radius: 10px; padding: 12px 14px; text-align: left; display: flex; gap: 10px; align-items: center; min-width: 0; }
+.opt .n { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+.opt .t { min-width: 0; overflow-wrap: anywhere; }
+.opts.kanji .opt { aspect-ratio: 1; justify-content: center; font-family: var(--font-k); font-size: clamp(30px, 10vw, 44px); padding: 0; position: relative; }
+.opts.kanji .opt .n { position: absolute; top: 5px; left: 7px; }
+.opts.kana .opt { font-family: var(--font-k); font-size: 20px; justify-content: center; }
+.opts.kana .opt .n { position: absolute; margin-left: -9999px; }
+.opt.right { background: var(--ai); border-color: var(--ai); color: var(--sheet); }
+.opt.right .n { color: inherit; }
+.opt.wrong { background: var(--shu-soft); border-color: var(--shu); color: var(--shu); }
+.opt:disabled { cursor: default; }
+
+.typed { display: flex; flex-direction: column; gap: 8px; }
+.typed input { border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 18px; background: var(--sheet); width: 100%; box-sizing: border-box; }
+.typed input:focus { outline: none; border-color: var(--ai); }
+.typed .live { font-family: var(--font-k); font-size: 22px; min-height: 1.4em; text-align: center; color: var(--ai); }
+.verdict { text-align: center; font-weight: 700; font-size: 17px; }
+.verdict.ok { color: var(--ai); }
+.verdict.no { color: var(--shu); }
+.verdict small { display: block; font-weight: 400; font-size: 14px; color: var(--muted); }
+.verdict .r { font-family: var(--font-k); color: var(--ink); font-size: 20px; }
+
+.answer { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.answer .head { display: flex; gap: 14px; align-items: center; }
+.answer .head .bigk { font-family: var(--font-k); font-size: 52px; line-height: 1; }
+.meaning { font-size: 20px; font-weight: 700; line-height: 1.3; }
+.reads { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: baseline; }
+.reads .v { font-family: var(--font-k); font-size: 18px; }
+.reads .v .ok { color: var(--muted); }
+.words { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.words li { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 2px 12px; align-items: baseline; border-top: 1px solid var(--line); padding-top: 8px; }
+.words .w { font-family: var(--font-k); font-size: 20px; }
+.words .w em { font-style: normal; color: var(--ai); }
+.words .r { font-family: var(--font-k); font-size: 15px; }
+.words .g { grid-column: 2; font-size: 13px; color: var(--muted); min-width: 0; }
+.meta { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+
+.grades { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+.grades.three { grid-template-columns: 1fr 1.6fr 1fr; }
+.grades button { border-radius: 10px; padding: 10px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 1px; font-weight: 700; border: 1px solid var(--line); background: var(--sheet); }
+.grades small { font-weight: 400; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.grades .again { color: var(--shu); border-color: color-mix(in srgb, var(--shu) 45%, var(--line)); }
+.grades .good { background: var(--ai); color: var(--sheet); border-color: var(--ai); }
+.grades .good small { color: color-mix(in srgb, var(--sheet) 80%, var(--ai)); }
+.grades .easy { background: var(--ai-soft); border-color: var(--ai-soft); color: var(--ai); }
+.linkish { font-size: 13px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; align-self: center; padding: 4px; }
+.keys { text-align: center; font-size: 12px; color: var(--muted); }
+@media (hover: none) { .keys { display: none; } }
+
+/* blitz */
+.clock { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.clock div { height: 100%; background: var(--ai); transform-origin: left; }
+.clock.low div { background: var(--shu); }
+.score { display: flex; justify-content: space-between; align-items: baseline; font-variant-numeric: tabular-nums; }
+.score b { font-size: 26px; }
+.combo { font-size: 13px; color: var(--ai); font-weight: 700; }
+.misses { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.miss { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--sheet); display: flex; gap: 10px; align-items: center; min-width: 0; }
+.miss b { font-family: var(--font-k); font-size: 28px; font-weight: 500; line-height: 1; }
+.miss span { font-size: 12px; color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+
+/* calibration */
+.calgrid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; }
+.cell { aspect-ratio: 1; border: 1px solid var(--line); background: var(--sheet); border-radius: 10px; display: grid; place-items: center; font-family: var(--font-k); font-size: clamp(26px, 8vw, 38px); transition: background .12s, color .12s, border-color .12s; }
+.cell[aria-pressed="true"] { background: var(--ai); color: var(--sheet); border-color: var(--ai); }
+
+/* settings */
+dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--sheet); color: var(--ink); padding: 18px; width: min(420px, calc(100vw - 32px)); box-sizing: border-box; }
+dialog::backdrop { background: rgb(10 12 20 / .45); }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { flex: 1; padding: 9px 0; font-variant-numeric: tabular-nums; }
+.seg button[aria-pressed="true"] { background: var(--ai); color: var(--sheet); }
+.danger { color: var(--shu); }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.credits { font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0; }
+
+.done { text-align: center; padding: 28px 8px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.done .big { font-family: var(--font-k); font-size: 64px; color: var(--ai); line-height: 1; }
+@keyframes pop { from { transform: scale(.96); } to { transform: none; } }
+.pop { animation: pop .15s ease-out; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1><span>漢字</span> Robots Kanjiskole</h1>
+    <span id="sync">Gemmer på denne enhed</span>
+  </header>
+  <main id="view"></main>
+</div>
+
+<dialog id="settings">
+  <div class="stack">
+    <div class="lbl">Nye kanji om dagen</div>
+    <div class="seg" id="perday"></div>
+    <div class="lbl">Repetitioner som</div>
+    <div class="seg" id="style"></div>
+    <div class="note">Dagen skifter kl. 04, ikke ved midnat. Så tæller kl. 2-sessioner med til i går.</div>
+    <div class="lbl">Fremskridt</div>
+    <div id="resetbox"></div>
+    <p class="credits">Data: KANJIDIC2 og JMdict (EDRDG, CC BY-SA 4.0) via kanji-data af David Gouveia og @furifont/dictionary; ordlister fra open-anki-jlpt-decks (Jamie Sinclair, MIT). Komponentnavne fra WaniKani.</p>
+    <button class="primary" id="closeSet" type="button">Luk</button>
+  </div>
+</dialog>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+"use strict";
+const K = JSON.parse(document.getElementById("data").textContent);
+const BY = Object.fromEntries(K.map(r => [r.k, r]));
+const LS = "kanjiskole-v1";
+const $ = s => document.querySelector(s);
+const view = $("#view");
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---------- time: the day rolls over at 04:00 ---------- */
+function dayNum(t = Date.now()) { const d = new Date(t - 4 * 3600e3); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60e3) / 864e5); }
+function dayKey(n = dayNum()) { return new Date(n * 864e5).toISOString().slice(0, 10); }
+
+/* ---------- state ---------- */
+// cards[k] = [due, interval, ease, reps, lapses, calibrated]
+function blank() { return { v: 1, u: 0, cards: {}, perDay: 10, calPos: 0, log: {}, style: "quiz", best: 0 }; }
+function load() { try { const x = JSON.parse(localStorage.getItem(LS) || "null"); if (x && x.v === 1) return Object.assign(blank(), x); } catch (e) {} return null; }
+let S = load() || blank();
+
+let docRef = null, saving = false, dirty = false, timer = null;
+function setSync(t) { $("#sync").textContent = t; }
+function save() {
+  S.u = Date.now();
+  try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {}
+  dirty = true; clearTimeout(timer); timer = setTimeout(flush, 1500);
+}
+async function flush() {
+  if (!docRef || saving || !dirty) return;
+  saving = true; dirty = false;
+  try { await docRef.set(JSON.parse(JSON.stringify(S))); setSync("Synkroniseret"); }
+  catch (e) { dirty = true; setSync(e && e.code === "quota_exceeded" ? "Sky fuld: gemt lokalt" : "Gemt lokalt"); }
+  saving = false;
+  if (dirty) { clearTimeout(timer); timer = setTimeout(flush, 3000); }
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); });
+
+(async () => {
+  try {
+    if (!window.claude || !window.claude.use) return;
+    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if (!db || !user) return;
+    const id = await user.id(); if (!id) return;
+    docRef = db.doc("data/users/" + id + "/srs");
+    const snap = await docRef.get();
+    const remote = snap.exists ? snap.data() : null;
+    if (remote && remote.v === 1 && (remote.u || 0) > (S.u || 0)) {
+      S = Object.assign(blank(), remote);
+      try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {}
+      if (mode === "home") home();
+      setSync("Synkroniseret");
+    } else if ((S.u || 0) > ((remote && remote.u) || 0)) { dirty = true; await flush(); }
+    else setSync("Synkroniseret");
+  } catch (e) { setSync("Gemt lokalt"); }
+})();
+
+/* ---------- scheduling ---------- */
+function todayLog() { const k = dayKey(); return S.log[k] || (S.log[k] = { n: 0, r: 0 }); }
+function dueList() { const t = dayNum(); return K.filter(r => S.cards[r.k] && S.cards[r.k][0] <= t).sort((a, b) => S.cards[a.k][0] - S.cards[b.k][0] || a.i - b.i); }
+function newList(n) { const out = []; for (const r of K) { if (out.length >= n) break; if (!S.cards[r.k]) out.push(r); } return out; }
+function newLeft() { return Math.max(0, S.perDay - todayLog().n); }
+function fuzz(i) { return i < 5 ? i : Math.round(i * (0.95 + Math.random() * 0.1)); }
+function preview(c, g) { // next interval in days (0 = again this session)
+  if (!c) return [0, 1, 1, 4][g];
+  const [, i, e, r] = c;
+  if (g === 0) return 0;
+  if (i === 0) return g === 3 ? 3 : 1;
+  if (g === 1) return Math.max(1, Math.round(i * 1.2));
+  if (g === 2) return r <= 1 && i <= 1 ? 3 : Math.max(i + 1, Math.round(i * e / 100));
+  return Math.max(i + 2, Math.round(i * e / 100 * 1.3));
+}
+function grade(k, g) {
+  const t = dayNum(); const c = S.cards[k]; const lg = todayLog();
+  if (!c) lg.n++; lg.r++;
+  let [, i, e, r, l] = c || [t, 0, 250, 0, 0];
+  const next = preview(c, g);
+  if (g === 0) { e = Math.max(130, e - 20); if (c && c[3] > 0 && c[1] > 0) l++; i = 0; }
+  else { if (g === 1) e = Math.max(130, e - 15); if (g === 3) e += 15; i = Math.min(730, fuzz(next)); r++; }
+  S.cards[k] = [g === 0 ? t : t + i, i, e, r, l];
+  save();
+  return g === 0;
+}
+function fmt(d) { if (d === 0) return "nu"; if (d < 31) return d + " d"; if (d < 365) return Math.round(d / 30) + " md"; return (d / 365).toFixed(1).replace(".", ",") + " år"; }
+
+/* ---------- DOM helpers ---------- */
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [a, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (a === "class") n.className = v; else if (a.startsWith("on")) n.addEventListener(a.slice(2), v); else n.setAttribute(a, v === true ? "" : v);
+  }
+  for (const c of kids.flat(3)) if (c != null && c !== false) n.append(c.nodeType ? c : document.createTextNode(c));
+  return n;
+}
+const markWord = (w, k) => [...w].map(ch => ch === k ? el("em", {}, ch) : ch);
+const gapWord = (w, k) => [...w].map(ch => ch === k ? el("span", { class: "gap", "aria-label": "mangler" }) : ch);
+function kun(s) { const [a, b] = s.split("."); return b ? [a, el("span", { class: "ok" }, b)] : [a]; }
+function stage(c) { if (!c) return 0; if (c[1] >= 21) return 3; if (c[1] >= 7) return 2; return 1; }
+const mean = r => r.m.slice(0, 2).join(", ");
+
+function answerPanel(r, focusWord) {
+  const ws = focusWord ? [focusWord, ...r.w.filter(w => w !== focusWord)] : r.w;
+  return el("div", { class: "answer" },
+    el("div", { class: "head" }, el("span", { class: "bigk", lang: "ja" }, r.k), el("div", { class: "meaning" }, r.m.join(", "))),
+    el("div", { class: "reads" },
+      r.on.length ? [el("span", { class: "lbl" }, "On"), el("span", { class: "v", lang: "ja" }, r.on.join("・"))] : null,
+      r.kun.length ? [el("span", { class: "lbl" }, "Kun"), el("span", { class: "v", lang: "ja" }, r.kun.flatMap((s, i) => i ? ["・", ...kun(s)] : kun(s)))] : null),
+    el("ul", { class: "words" }, ws.map(([wd, rd, gl]) => el("li", {},
+      el("span", { class: "w", lang: "ja" }, markWord(wd, r.k)), el("span", { class: "r", lang: "ja" }, rd),
+      gl ? el("span", { class: "g" }, gl) : null))),
+    el("div", { class: "meta" },
+      el("span", {}, `${r.s} streger`), r.j ? el("span", {}, `JLPT N${r.j}`) : null,
+      el("span", {}, `#${r.i + 1} i hyppighed`), r.c.length ? el("span", {}, "Dele: " + r.c.join(" + ")) : null));
+}
+
+/* ---------- kana tools ---------- */
+const toHira = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+const RO = (() => {
+  const t = { a:"あ",i:"い",u:"う",e:"え",o:"お","-":"ー" };
+  const rows = { k:"かきくけこ", s:"さしすせそ", t:"たちつてと", n:"なにぬねの", h:"はひふへほ", m:"まみむめも", r:"らりるれろ",
+    g:"がぎぐげご", z:"ざじずぜぞ", d:"だぢづでど", b:"ばびぶべぼ", p:"ぱぴぷぺぽ" };
+  for (const [c, ks] of Object.entries(rows)) "aiueo".split("").forEach((v, j) => t[c + v] = ks[j]);
+  Object.assign(t, { ya:"や",yu:"ゆ",yo:"よ",wa:"わ",wo:"を",shi:"し",chi:"ち",tsu:"つ",fu:"ふ",ji:"じ",si:"し",ti:"ち",tu:"つ",hu:"ふ",zi:"じ",di:"ぢ",du:"づ",
+    sha:"しゃ",shu:"しゅ",sho:"しょ",she:"しぇ",cha:"ちゃ",chu:"ちゅ",cho:"ちょ",che:"ちぇ",ja:"じゃ",ju:"じゅ",jo:"じょ",je:"じぇ",
+    fa:"ふぁ",fi:"ふぃ",fe:"ふぇ",fo:"ふぉ",xtsu:"っ",ltsu:"っ",xtu:"っ",ltu:"っ",
+    sya:"しゃ",syu:"しゅ",syo:"しょ",tya:"ちゃ",tyu:"ちゅ",tyo:"ちょ",zya:"じゃ",zyu:"じゅ",zyo:"じょ",jya:"じゃ",jyu:"じゅ",jyo:"じょ" });
+  for (const [c, s] of Object.entries({ k:"き",g:"ぎ",n:"に",h:"ひ",b:"び",p:"ぴ",m:"み",r:"り" }))
+    Object.assign(t, { [c+"ya"]: s+"ゃ", [c+"yu"]: s+"ゅ", [c+"yo"]: s+"ょ" });
+  return t;
+})();
+function toKana(src) {
+  const s = src.toLowerCase().replace(/\s+/g, ""); let out = "", i = 0;
+  while (i < s.length) {
+    const c = s[i], nx = s[i + 1];
+    if (c === "n" && (nx === "n" || nx === "'")) { out += "ん"; i += (nx === "'" ? 2 : 1); if (nx === "n" && !/[aiueoy]/.test(s[i + 1] || "")) i++; continue; }
+    if (c === "n" && (nx === undefined || !/[aiueoy]/.test(nx))) { out += "ん"; i++; continue; }
+    if (c === nx && /[bcdfghjklmpqrstvwxz]/.test(c)) { out += "っ"; i++; continue; }
+    if (c === "t" && nx === "c") { out += "っ"; i++; continue; }
+    let hit = false;
+    for (const L of [4, 3, 2, 1]) { const seg = s.substr(i, L); if (RO[seg]) { out += RO[seg]; i += L; hit = true; break; } }
+    if (!hit) { out += c; i++; }
+  }
+  return toHira(out);
+}
+const norm = s => toHira(s).replace(/[\s・.\-]/g, "");
+
+const VOICE = {}; ["かが","きぎ","くぐ","けげ","こご","さざ","しじ","すず","せぜ","そぞ","ただ","ちぢ","つづ","てで","とど","はば","ひび","ふぶ","へべ","ほぼ"].forEach(p => { VOICE[p[0]] = p[1]; VOICE[p[1]] = p[0]; });
+Object.assign(VOICE, { "ぱ":"ば","ぴ":"び","ぷ":"ぶ","ぺ":"べ","ぽ":"ぼ" });
+const OROW = "おこごそぞとどのほぼぽもよろ", EROW = "えけげせぜてでねへべぺめれ", SOKU = "かきくけこさしすせそたちつてとぱぴぷぺぽ";
+function mutate(h) {
+  const a = [...h], ops = shuffle(["voice", "soku", "long", "small", "voice"]);
+  for (const op of ops) {
+    if (op === "voice") { const idx = a.map((c, i) => VOICE[c] ? i : -1).filter(i => i >= 0); if (idx.length) { const i = pick(idx); const b = [...a]; b[i] = VOICE[b[i]]; return b.join(""); } }
+    if (op === "soku") {
+      const k = a.indexOf("っ"); if (k >= 0) { const b = [...a]; b.splice(k, 1); return b.join(""); }
+      const idx = a.map((c, i) => i > 0 && SOKU.includes(c) ? i : -1).filter(i => i >= 0); if (idx.length) { const b = [...a]; b.splice(pick(idx), 0, "っ"); return b.join(""); }
+    }
+    if (op === "long") {
+      const idx = a.map((c, i) => c === "う" && i > 0 && (OROW.includes(a[i - 1]) || "ゅょ".includes(a[i - 1])) ? i : -1).filter(i => i >= 0);
+      if (idx.length) { const b = [...a]; b.splice(pick(idx), 1); return b.join(""); }
+      const ei = a.map((c, i) => c === "い" && i > 0 && EROW.includes(a[i - 1]) ? i : -1).filter(i => i >= 0);
+      if (ei.length) { const b = [...a]; b.splice(pick(ei), 1); return b.join(""); }
+      const add = a.map((c, i) => (OROW.includes(c) || "ゅょ".includes(c)) && !"うんっ".includes(a[i + 1] || "") ? i : -1).filter(i => i >= 0);
+      if (add.length) { const b = [...a]; b.splice(pick(add) + 1, 0, "う"); return b.join(""); }
+    }
+    if (op === "small") {
+      const m = { "ゃ":"や","ゅ":"ゆ","ょ":"よ","や":"ゃ","ゆ":"ゅ","よ":"ょ" };
+      const idx = a.map((c, i) => m[c] && i > 0 && (!"ゃゅょ".includes(c) || true) ? i : -1).filter(i => i >= 0);
+      if (idx.length) { const b = [...a]; const i = pick(idx); b[i] = m[b[i]]; return b.join(""); }
+    }
+  }
+  return null;
+}
+const ALLREAD = K.flatMap(r => r.w.map(w => w[1]));
+function swapReadings(right, word) {
+  // the realistic mistake: right kanji, wrong one of its readings (有名 ゆうめい → うみょう)
+  const out = new Set();
+  for (const ch of new Set(word)) {
+    const r = BY[ch]; if (!r) continue;
+    const reads = [...new Set([...r.on.map(toHira), ...r.kun.map(k => k.split(".")[0].replace(/-/g, ""))].filter(Boolean))];
+    for (const a of reads) if ((a.length >= 2 || right.startsWith(a)) && right.includes(a)) for (const b of reads) if (b !== a) out.add(right.replace(a, b));
+  }
+  out.delete(right);
+  return shuffle([...out]);
+}
+function readingOpts(right, word = "") {
+  const set = new Set([right]); let guard = 0;
+  for (const x of swapReadings(right, word)) { if (set.size >= 3) break; set.add(x); }
+  while (set.size < 4 && guard++ < 40) { const base = guard > 12 ? pick([...set]) : right; const m = mutate(base); if (m && m.length) set.add(m); }
+  while (set.size < 4) { const o = pick(ALLREAD); if (Math.abs(o.length - right.length) <= 1) set.add(o); }
+  return shuffle([...set]);
+}
+
+/* ---------- look-alike distractors (shared components, similar frequency) ---------- */
+const COMP = {}; K.forEach(r => r.c.forEach(c => (COMP[c] = COMP[c] || []).push(r)));
+function lookalikes(r, n = 3) {
+  const score = new Map();
+  r.c.forEach(c => (COMP[c] || []).forEach(o => { if (o !== r) score.set(o, (score.get(o) || 0) + 1); }));
+  let cand = [...score.entries()].sort((a, b) => b[1] - a[1] || Math.abs(a[0].i - r.i) - Math.abs(b[0].i - r.i)).map(e => e[0]).slice(0, 12);
+  shuffle(cand);
+  const out = []; const seen = new Set([r.m[0].toLowerCase()]);
+  for (const o of cand) { if (out.length >= n) break; if (!seen.has(o.m[0].toLowerCase())) { seen.add(o.m[0].toLowerCase()); out.push(o); } }
+  let guard = 0;
+  while (out.length < n && guard++ < 200) {
+    const o = K[Math.max(0, Math.min(K.length - 1, r.i + rnd(160) - 80))];
+    if (o !== r && !out.includes(o) && !seen.has(o.m[0].toLowerCase()) && Math.abs(o.s - r.s) <= 3) { seen.add(o.m[0].toLowerCase()); out.push(o); }
+  }
+  return out;
+}
+
+/* ---------- exercises ---------- */
+// Each returns { kind, label, prompt: Node[], opts?: {cls, items:[{label, ok}]}, typed?: answer, word }
+const TYPES = {
+  mean(r) {
+    const items = shuffle([{ label: mean(r), ok: true }, ...lookalikes(r).map(o => ({ label: mean(o) }))]);
+    return { label: "Betydning", prompt: [el("div", { class: "square" }, el("div", { class: "k", lang: "ja" }, r.k)), el("div", { class: "q" }, "Hvad betyder den?")], opts: { cls: "text", items } };
+  },
+  which(r) {
+    const items = shuffle([{ label: r.k, ok: true }, ...lookalikes(r).map(o => ({ label: o.k }))]);
+    return { label: "Find kanjien", prompt: [el("div", { class: "q" }, "Hvilken kanji betyder"), el("div", { class: "gloss-big" }, mean(r))], opts: { cls: "kanji", items } };
+  },
+  read(r, w) {
+    const items = readingOpts(w[1], w[0]).map(x => ({ label: x, ok: x === w[1] }));
+    return { label: "Læsning", word: w, prompt: [el("div", { class: "q" }, "Hvordan læses det?"), el("div", { class: "word", lang: "ja" }, markWord(w[0], r.k)), w[2] ? el("div", { class: "hint" }, w[2]) : null], opts: { cls: "kana", items } };
+  },
+  fill(r, w) {
+    const items = shuffle([{ label: r.k, ok: true }, ...lookalikes(r).map(o => ({ label: o.k }))]);
+    return { label: "Byg ordet", word: w, prompt: [el("div", { class: "q" }, "Hvilken kanji mangler?"), el("div", { class: "word", lang: "ja" }, gapWord(w[0], r.k)),
+      el("div", { class: "hint" }, el("span", { class: "r", lang: "ja" }, w[1]), w[2] ? ` · ${w[2]}` : "")], opts: { cls: "kanji", items } };
+  },
+  type(r, w) {
+    return { label: "Skriv læsningen", word: w, prompt: [el("div", { class: "q" }, "Skriv læsningen (romaji eller kana)"), el("div", { class: "word", lang: "ja" }, markWord(w[0], r.k)), w[2] ? el("div", { class: "hint" }, w[2]) : null], typed: w[1] };
+  },
+};
+function makeExercise(r, { noType = false, prefer } = {}) {
+  const glossed = r.w.filter(w => w[2]);
+  const w = pick(glossed.length ? glossed : r.w.length ? r.w : [null]);
+  const multi = r.w.filter(x => [...x[0]].length >= 2 && x[0].includes(r.k));
+  const avail = [["mean", 3], ["which", 2]];
+  if (w) { avail.push(["read", 3]); if (!noType) avail.push(["type", 2]); }
+  if (multi.length) avail.push(["fill", 3]);
+  let kind = prefer && avail.some(a => a[0] === prefer) ? prefer : null;
+  if (!kind) { let tot = avail.reduce((s, a) => s + a[1], 0), x = Math.random() * tot; for (const [k, wt] of avail) { if ((x -= wt) < 0) { kind = k; break; } } kind = kind || "mean"; }
+  const word = kind === "fill" ? pick(multi) : w;
+  return Object.assign({ kind }, TYPES[kind](r, word));
+}
+
+/* ---------- home ---------- */
+let mode = "home", keyHandler = null, extraNew = 0;
+function started() { return K.filter(r => S.cards[r.k] && (S.cards[r.k][3] > 0 || S.cards[r.k][5])); }
+function home() {
+  mode = "home"; keyHandler = null; stopBlitz();
+  const due = dueList().length, nl = Math.min(newLeft(), K.length - Object.keys(S.cards).length);
+  const learned = Object.keys(S.cards).length;
+  const mature = Object.values(S.cards).filter(c => c[1] >= 21).length;
+  const lg = todayLog();
+  const num = (v, lbl) => el("div", { class: "num" }, el("b", { class: v ? "" : "zero" }, String(v)), el("span", { class: "lbl" }, lbl));
+  const start = el("button", { class: "primary", type: "button", onclick: () => study() }, due + nl ? `Start · ${due + nl} opgaver` : "Færdig for i dag");
+  if (!(due + nl)) start.disabled = true;
+  const canvas = el("canvas", { id: "grid", role: "img", "aria-label": `${learned} af ${K.length} kanji i gang, ${mature} sikre` });
+  view.replaceChildren(
+    el("section", { class: "today" },
+      el("div", { class: "nums" }, num(due, "Repetition"), num(nl, "Nye i dag"), num(lg.r, "Svar i dag")),
+      start,
+      el("div", { class: "row" },
+        el("button", { class: "ghost", type: "button", onclick: blitzIntro }, "Lyntest · 60 sek", el("small", {}, S.best ? `Rekord: ${S.best}` : "Ingen rekord endnu")),
+        el("button", { class: "ghost", type: "button", onclick: () => { extraNew += 5; study(true); } }, "5 nye ekstra", el("small", {}, "Ud over dagens kvote"))),
+      el("div", { class: "row" },
+        el("button", { class: "ghost", type: "button", onclick: calibrate }, learned ? "Kalibrér videre" : "Kalibrér først", el("small", {}, "Spring dem over du kan")),
+        el("button", { class: "ghost", type: "button", onclick: openSettings }, "Indstillinger", el("small", {}, S.style === "quiz" ? "Opgaver: blandet quiz" : "Opgaver: flashcards"))),
+      !learned ? el("p", { class: "note" }, "Start med kalibrering: tryk på de kanji du allerede kan læse, så springer vi dem over. De kommer tilbage til kontrol om et par uger, og kontrollen er skriv-selv.") : null),
+    el("section", { class: "map" },
+      el("span", { class: "lbl" }, `Alle ${K.length} jōyō · ${learned} i gang · ${mature} sikre`),
+      canvas,
+      el("div", { class: "legend" },
+        el("span", {}, el("i", { style: "background:var(--line)" }), "ikke set"),
+        el("span", {}, el("i", { style: "background:color-mix(in srgb,var(--ai) 30%,var(--paper))" }), "lærer"),
+        el("span", {}, el("i", { style: "background:color-mix(in srgb,var(--ai) 62%,var(--paper))" }), "1-3 uger"),
+        el("span", {}, el("i", { style: "background:var(--ai)" }), "sikker (3+ uger)")),
+      el("p", { class: "note" }, "Rækkefølge: hyppighed i aviser. Øverst til venstre er 日, nederst til højre de sjældneste.")));
+  drawGrid(canvas);
+}
+function drawGrid(cv) {
+  const cols = 48, rows = Math.ceil(K.length / cols), cs = 14, gap = 2;
+  cv.width = cols * (cs + gap); cv.height = rows * (cs + gap);
+  const ctx = cv.getContext("2d"); const st = getComputedStyle(document.documentElement);
+  const ai = st.getPropertyValue("--ai").trim(), line = st.getPropertyValue("--line").trim(), paper = st.getPropertyValue("--paper").trim();
+  const mix = (a, b, p) => { const h = x => [1, 3, 5].map(j => parseInt(x.slice(j, j + 2), 16)); const A = h(a), B = h(b); return `rgb(${A.map((v, j) => Math.round(v * p + B[j] * (1 - p))).join(",")})`; };
+  const col = [line, mix(ai, paper, .3), mix(ai, paper, .62), ai];
+  K.forEach((r, i) => { ctx.fillStyle = col[stage(S.cards[r.k])]; ctx.fillRect((i % cols) * (cs + gap), Math.floor(i / cols) * (cs + gap), cs, cs); });
+}
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (mode === "home") home(); });
+
+/* ---------- study session ---------- */
+// Queue items: { r, t: "intro" | "quiz" | "flash", fresh }
+let Q = [], total = 0, doneCount = 0, failed = new Set();
+function study(onlyExtra) {
+  mode = "study";
+  const due = onlyExtra ? [] : dueList();
+  const n = onlyExtra ? extraNew : newLeft() + extraNew; extraNew = 0;
+  const news = newList(n);
+  const quiz = S.style === "quiz";
+  Q = []; let ni = 0;
+  const pushNew = r => Q.push({ r, t: quiz ? "intro" : "flash" });
+  due.forEach((r, i) => { Q.push({ r, t: quiz ? "quiz" : "flash" }); if ((i + 1) % 4 === 0 && ni < news.length) pushNew(news[ni++]); });
+  while (ni < news.length) pushNew(news[ni++]);
+  total = Q.length; doneCount = 0; failed = new Set();
+  if (!Q.length) return home();
+  next();
+}
+function next() {
+  if (!Q.length) return finished();
+  const it = Q[0];
+  if (it.t === "intro") return introCard(it);
+  if (it.t === "flash") return flashCard(it);
+  return quizCard(it);
+}
+function topBar(it, tagText, tagNew) {
+  return el("div", { class: "bar" },
+    el("button", { type: "button", class: "count", onclick: home }, "← Pause"),
+    el("div", { class: "track" }, el("div", { class: "fill", style: `width:${total ? doneCount / total * 100 : 0}%` })),
+    el("span", { class: "count" }, `${doneCount}/${total}`),
+    el("span", { class: "tag" + (tagNew ? " new" : "") }, tagText));
+}
+function requeue(item) { Q.splice(Math.min(3, Q.length), 0, item); }
+
+function introCard(it) {
+  const r = it.r;
+  const go = el("button", { class: "primary", type: "button", onclick: done }, "Forstået, test mig");
+  function done() { if (Q[0] !== it) return; Q.shift(); requeue({ r, t: "quiz", fresh: true }); next(); }
+  keyHandler = e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); done(); } else if (e.key === "Escape") home(); };
+  view.replaceChildren(el("section", { class: "study" }, topBar(it, "Ny kanji", true),
+    el("div", { class: "square" }, el("div", { class: "k", lang: "ja" }, r.k)),
+    answerPanel(r), go, el("div", { class: "keys" }, "Enter: videre · Esc: pause")));
+  go.focus({ preventScroll: true });
+}
+
+function settle(r, g, it) {
+  if (Q[0] !== it) return;
+  const again = grade(r.k, g);
+  Q.shift();
+  if (again) { failed.add(r.k); requeue({ r, t: it.t === "flash" ? "flash" : "quiz", fresh: it.fresh }); }
+  else doneCount++;
+  next();
+}
+
+function flashCard(it) {
+  const r = it.r, c = S.cards[r.k], w = r.w[0];
+  let shown = false;
+  const ans = answerPanel(r); ans.hidden = true;
+  const grades = el("div", { class: "grades", hidden: true });
+  const reveal = el("button", { class: "primary", type: "button", onclick: show }, "Vis svar");
+  function show() { if (shown) return; shown = true; ans.hidden = false; grades.hidden = false; reveal.hidden = true; }
+  ["Igen", "Svært", "Godt", "Let"].forEach((t, g) => grades.append(el("button", { class: ["again", "hard", "good", "easy"][g], type: "button", onclick: () => settle(r, g, it) }, t, el("small", {}, fmt(preview(c, g))))));
+  keyHandler = e => {
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); show(); }
+    else if (shown && "1234".includes(e.key)) settle(r, +e.key - 1, it);
+    else if (e.key === "Escape") home();
+  };
+  view.replaceChildren(el("section", { class: "study" },
+    topBar(it, !c ? "Ny" : failed.has(r.k) ? "Igen" : "Repetition", !c),
+    el("div", { class: "square" }, el("div", { class: "k", lang: "ja" }, r.k)),
+    el("div", { class: "prompt" }, w ? el("div", { class: "word", lang: "ja" }, markWord(w[0], r.k)) : null,
+      el("div", { class: "q" }, w ? "Betydning? Og hvordan læses ordet?" : "Betydning og læsning?")),
+    reveal, ans, grades, el("div", { class: "keys" }, "Mellemrum: vis · 1-4: svar · Esc: pause")));
+  reveal.focus({ preventScroll: true });
+}
+
+function quizCard(it) {
+  const r = it.r, c = S.cards[r.k];
+  // calibrated cards are checked with the hardest format: type it yourself
+  const ex = makeExercise(r, { prefer: c && c[5] && c[3] <= 1 && r.w.length ? "type" : null });
+  const sec = el("section", { class: "study" });
+  const after = el("div", { class: "stack", hidden: true });
+  let answered = false;
+
+  function result(ok, extra) {
+    answered = true;
+    const verdict = el("div", { class: "verdict pop " + (ok ? "ok" : "no") }, ok ? pick(["正解", "その通り", "完璧"]) + " · rigtigt" : "Forkert", extra);
+    const w = ex.word;
+    const btns = ok
+      ? el("div", { class: "grades three" },
+          el("button", { class: "hard", type: "button", onclick: () => settle(r, 1, it) }, "Gættede", el("small", {}, fmt(preview(S.cards[r.k], 1)))),
+          el("button", { class: "good", type: "button", onclick: () => settle(r, 2, it) }, "Videre", el("small", {}, fmt(preview(S.cards[r.k], 2)))),
+          el("button", { class: "easy", type: "button", onclick: () => settle(r, 3, it) }, "For let", el("small", {}, fmt(preview(S.cards[r.k], 3)))))
+      : el("div", { class: "grades three" }, el("span"), el("button", { class: "again", type: "button", onclick: () => settle(r, 0, it) }, "Videre", el("small", {}, "kommer igen om lidt")), el("span"));
+    after.replaceChildren(verdict, answerPanel(r, w), btns);
+    if (!ok && ex.kind === "type") after.append(el("button", { class: "linkish", type: "button", onclick: () => settle(r, 2, it) }, "Mit svar var også en gyldig læsning"));
+    after.hidden = false;
+    keyHandler = e => {
+      if (e.key === "Escape") return home();
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); settle(r, ok ? 2 : 0, it); }
+      else if (ok && e.key === "1") settle(r, 1, it); else if (ok && e.key === "3") settle(r, 3, it);
+    };
+    (btns.querySelector(".good, .again")).focus({ preventScroll: true });
+  }
+
+  let body;
+  if (ex.opts) {
+    const buttons = ex.opts.items.map((o, i) => el("button", { class: "opt", type: "button", lang: ex.opts.cls === "text" ? null : "ja", onclick: () => choose(i) }, el("span", { class: "n" }, String(i + 1)), el("span", { class: "t" }, o.label)));
+    function choose(i) {
+      if (answered) return;
+      buttons.forEach((b, j) => { b.disabled = true; if (ex.opts.items[j].ok) b.classList.add("right"); else if (j === i) b.classList.add("wrong"); });
+      result(!!ex.opts.items[i].ok);
+    }
+    body = el("div", { class: "opts " + ex.opts.cls }, buttons);
+    keyHandler = e => { if ("1234".includes(e.key)) choose(+e.key - 1); else if (e.key === "Escape") home(); };
+  } else {
+    const live = el("div", { class: "live", lang: "ja", "aria-live": "polite" });
+    const inp = el("input", { id: "typed", type: "text", autocomplete: "off", autocapitalize: "off", spellcheck: "false", enterkeyhint: "done", placeholder: "fx jikan eller じかん", lang: "ja" });
+    inp.addEventListener("input", () => { live.textContent = /[a-z]/i.test(inp.value) ? toKana(inp.value) : ""; });
+    const check = el("button", { class: "primary", type: "button", onclick: submit }, "Tjek");
+    function submit() {
+      if (answered || !inp.value.trim()) return;
+      const got = norm(toKana(inp.value)), want = norm(ex.typed);
+      inp.disabled = true; check.hidden = true;
+      const ok = got === want;
+      result(ok, ok ? null : el("small", {}, "Du skrev ", el("span", { class: "r", lang: "ja" }, got), " · rigtigt er ", el("span", { class: "r", lang: "ja" }, ex.typed)));
+    }
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); submit(); } });
+    body = el("div", { class: "typed" }, inp, live, check);
+    keyHandler = e => { if (e.key === "Escape") home(); };
+    setTimeout(() => inp.focus({ preventScroll: true }), 30);
+  }
+  sec.append(topBar(it, it.fresh ? "Ny · test" : failed.has(r.k) ? "Igen" : ex.label, it.fresh),
+    el("div", { class: "prompt" }, ex.prompt), body, after,
+    el("div", { class: "keys" }, ex.opts ? "1-4: vælg · Enter: videre · Esc: pause" : "Enter: tjek / videre · Esc: pause"));
+  view.replaceChildren(sec);
+}
+document.addEventListener("keydown", e => {
+  if (!keyHandler || $("#settings").open) return;
+  if (e.target && e.target.tagName === "INPUT" && e.key !== "Escape") return;
+  keyHandler(e);
+});
+
+function finished() {
+  mode = "done"; keyHandler = null;
+  const lg = todayLog();
+  view.replaceChildren(el("section", { class: "today done" },
+    el("div", { class: "big", lang: "ja" }, "済"),
+    el("div", { class: "meaning" }, "Færdig for nu"),
+    el("p", { class: "note" }, `${lg.r} svar i dag, ${lg.n} nye kanji. 済 (sumi) betyder "afsluttet".`),
+    el("button", { class: "primary", type: "button", onclick: home }, "Tilbage")));
+  flush();
+}
+
+/* ---------- blitz: 60 seconds, multiple choice only ---------- */
+let blitz = null;
+function stopBlitz() { if (blitz && blitz.raf) cancelAnimationFrame(blitz.raf); if (blitz) blitz.over = true; }
+function blitzPool() {
+  const mine = started();
+  if (mine.length >= 20) return mine.map(r => ({ r, wt: 1 + (S.cards[r.k][4] || 0) * 2 + (S.cards[r.k][1] < 7 ? 2 : 0) }));
+  return K.slice(0, 300).map(r => ({ r, wt: 1 }));
+}
+function blitzIntro() {
+  mode = "blitz"; stopBlitz();
+  const mine = started().length >= 20;
+  keyHandler = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); blitzStart(); } else if (e.key === "Escape") home(); };
+  view.replaceChildren(el("section", { class: "today done" },
+    el("div", { class: "big", lang: "ja" }, "速"),
+    el("div", { class: "meaning" }, "Lyntest"),
+    el("p", { class: "note" }, "60 sekunder, fire valgmuligheder, så mange rigtige som muligt. Tre rigtige i træk giver bonus. " +
+      (mine ? "Spørgsmålene kommer fra dine egne kanji, med vægt på dem du fejler." : "Du har under 20 kanji i gang, så spørgsmålene kommer fra de 300 mest brugte.")),
+    el("p", { class: "note" }, S.best ? `Din rekord: ${S.best}` : "Ingen rekord endnu."),
+    el("button", { class: "primary", type: "button", onclick: blitzStart }, "Start"),
+    el("button", { class: "linkish", type: "button", onclick: home }, "Tilbage")));
+}
+function blitzStart() {
+  stopBlitz();
+  const pool = blitzPool(); const tot = pool.reduce((s, p) => s + p.wt, 0);
+  const draw = () => { let x = Math.random() * tot; for (const p of pool) if ((x -= p.wt) < 0) return p.r; return pool[0].r; };
+  blitz = { score: 0, streak: 0, end: performance.now() + 60000, misses: [], over: false, last: null, pool, draw };
+  blitzQ();
+  const tick = () => {
+    if (blitz.over) return;
+    const left = Math.max(0, blitz.end - performance.now());
+    const bar = $("#clock"); if (bar) { bar.firstChild.style.transform = `scaleX(${left / 60000})`; bar.classList.toggle("low", left < 10000); }
+    const sec = $("#secs"); if (sec) sec.textContent = Math.ceil(left / 1000) + " s";
+    if (left <= 0) return blitzEnd();
+    blitz.raf = requestAnimationFrame(tick);
+  };
+  blitz.raf = requestAnimationFrame(tick);
+}
+function blitzQ() {
+  if (blitz.over) return;
+  let r; do { r = blitz.draw(); } while (r === blitz.last && blitz.pool.length > 1);
+  blitz.last = r;
+  const ex = makeExercise(r, { noType: true });
+  let locked = false;
+  const buttons = ex.opts.items.map((o, i) => el("button", { class: "opt", type: "button", lang: ex.opts.cls === "text" ? null : "ja", onclick: () => choose(i) }, el("span", { class: "n" }, String(i + 1)), el("span", { class: "t" }, o.label)));
+  function choose(i) {
+    if (locked || blitz.over) return; locked = true;
+    const ok = !!ex.opts.items[i].ok;
+    buttons.forEach((b, j) => { if (ex.opts.items[j].ok) b.classList.add("right"); else if (j === i) b.classList.add("wrong"); });
+    if (ok) { blitz.streak++; blitz.score += blitz.streak >= 3 ? 2 : 1; }
+    else {
+      blitz.streak = 0;
+      if (!blitz.misses.includes(r)) blitz.misses.push(r);
+      const c = S.cards[r.k]; if (c && c[0] > dayNum()) { c[0] = dayNum(); save(); }
+    }
+    setTimeout(blitzQ, ok ? 260 : 900);
+  }
+  keyHandler = e => { if ("1234".includes(e.key)) choose(+e.key - 1); else if (e.key === "Escape") home(); };
+  view.replaceChildren(el("section", { class: "study" },
+    el("div", { class: "score" }, el("div", {}, el("b", {}, String(blitz.score)), " point"),
+      blitz.streak >= 3 ? el("span", { class: "combo" }, `${blitz.streak} i træk · ×2`) : el("span", { class: "count" }, S.best ? `Rekord ${S.best}` : ""),
+      el("span", { class: "count", id: "secs" }, Math.ceil(Math.max(0, blitz.end - performance.now()) / 1000) + " s")),
+    el("div", { class: "clock", id: "clock" }, el("div", { style: `transform:scaleX(${Math.max(0, blitz.end - performance.now()) / 60000})` })),
+    el("div", { class: "prompt" }, ex.prompt.map(n => n.classList && n.classList.contains("square") ? (n.style.width = "min(40vw,150px)", n.firstChild.style.fontSize = "min(30vw,108px)", n) : n)),
+    el("div", { class: "opts " + ex.opts.cls }, buttons)));
+}
+function blitzEnd() {
+  blitz.over = true; keyHandler = null;
+  const rec = blitz.score > (S.best || 0);
+  if (rec) { S.best = blitz.score; save(); }
+  const lines = rec ? ["Ny rekord.", "Den skal du nok ikke slå i morgen. Bevis det modsatte."]
+    : [`${S.best - blitz.score} fra rekorden.`, blitz.score >= S.best * .8 ? "Tæt på. Én gang til?" : "Det var ikke din bedste. Det ved du godt."];
+  keyHandler = e => { if (e.key === "Enter") blitzStart(); else if (e.key === "Escape") home(); };
+  view.replaceChildren(el("section", { class: "study" },
+    el("div", { class: "today done" },
+      el("div", { class: "big" }, String(blitz.score)),
+      el("div", { class: "meaning" }, lines[0]),
+      el("p", { class: "note" }, lines[1])),
+    blitz.misses.length ? el("div", { class: "stack" },
+      el("span", { class: "lbl" }, `Fejl (${blitz.misses.length})` + (blitz.misses.some(r => S.cards[r.k]) ? " · kommer med i dagens repetition" : "")),
+      el("div", { class: "misses" }, blitz.misses.map(r => el("div", { class: "miss" }, el("b", { lang: "ja" }, r.k), el("span", {}, mean(r), el("br"), r.w[0] ? `${r.w[0][0]} ${r.w[0][1]}` : ""))))) : null,
+    el("div", { class: "row" },
+      el("button", { class: "primary", type: "button", onclick: blitzStart }, "Igen"),
+      el("button", { class: "ghost", type: "button", onclick: home }, "Til forsiden"))));
+  flush();
+}
+
+/* ---------- calibration ---------- */
+function calibrate() {
+  mode = "cal";
+  const batch = [];
+  for (let i = S.calPos; i < K.length && batch.length < 25; i++) if (!S.cards[K[i].k]) batch.push(K[i]);
+  if (!batch.length) return home();
+  const picked = new Set();
+  const grid = el("div", { class: "calgrid" }, batch.map(r => {
+    const b = el("button", { class: "cell", type: "button", lang: "ja", "aria-pressed": "false" }, r.k);
+    b.addEventListener("click", () => { picked.has(r.k) ? picked.delete(r.k) : picked.add(r.k); b.setAttribute("aria-pressed", String(picked.has(r.k))); });
+    return b;
+  }));
+  function commit() {
+    const t = dayNum();
+    batch.forEach(r => { if (picked.has(r.k)) S.cards[r.k] = [t + 3 + rnd(25), 21, 260, 1, 0, 1]; });
+    S.calPos = K.indexOf(batch[batch.length - 1]) + 1;
+    save();
+  }
+  keyHandler = e => { if (e.key === "Escape") home(); };
+  view.replaceChildren(el("section", { class: "study" },
+    el("div", { class: "bar" },
+      el("button", { type: "button", class: "count", onclick: home }, "← Tilbage"),
+      el("div", { class: "track" }, el("div", { class: "fill", style: `width:${Math.round(S.calPos / K.length * 100)}%` })),
+      el("span", { class: "count" }, `#${S.calPos + 1}–${K.indexOf(batch[batch.length - 1]) + 1}`)),
+    el("div", { class: "prompt" },
+      el("div", { class: "meaning" }, "Hvilke kan du læse?"),
+      el("div", { class: "q" }, "Tryk på dem hvor du kender betydningen og mindst én læsning. Vær ærlig: om 3–4 uger skal du selv skrive læsningen.")),
+    grid,
+    el("div", { class: "row" },
+      el("button", { class: "primary", type: "button", onclick: () => { commit(); calibrate(); } }, "Næste 25"),
+      el("button", { class: "ghost", type: "button", onclick: () => { commit(); home(); } }, "Gem og stop"))));
+}
+
+/* ---------- settings ---------- */
+function openSettings() {
+  const seg = $("#perday"); seg.replaceChildren();
+  [5, 10, 15, 20, 30].forEach(n => seg.append(el("button", { type: "button", "aria-pressed": String(S.perDay === n), onclick: () => { S.perDay = n; save(); openSettings(); } }, String(n))));
+  const st = $("#style"); st.replaceChildren();
+  [["quiz", "Blandet quiz"], ["flash", "Flashcards"]].forEach(([v, t]) => st.append(el("button", { type: "button", "aria-pressed": String(S.style === v), onclick: () => { S.style = v; save(); openSettings(); } }, t)));
+  resetBox(false);
+  const d = $("#settings"); if (!d.open) d.showModal();
+}
+function resetBox(confirming) {
+  const box = $("#resetbox");
+  if (!confirming) return box.replaceChildren(el("button", { class: "ghost danger", type: "button", onclick: () => resetBox(true) }, "Nulstil alt fremskridt"));
+  box.replaceChildren(el("div", { class: "stack" },
+    el("div", { class: "note" }, "Sikker? Alle kort, rekorder og historik slettes, også i skyen."),
+    el("div", { class: "row" },
+      el("button", { class: "ghost danger", type: "button", onclick: () => { S = blank(); save(); $("#settings").close(); home(); } }, "Ja, nulstil"),
+      el("button", { class: "ghost", type: "button", onclick: () => resetBox(false) }, "Fortryd"))));
+}
+$("#closeSet").addEventListener("click", () => { $("#settings").close(); home(); });
+
+home();
+</script>

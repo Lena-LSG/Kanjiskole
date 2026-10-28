@@ -1,0 +1,30 @@
+{
+  "$comment": "Every input to the data build, pinned. fetch.ts refuses anything whose hash differs. Bump deliberately.",
+  "kanjidata": {
+    "url": "https://raw.githubusercontent.com/davidluzgouveia/kanji-data/master/kanji.json",
+    "sha256": "561b72ea9df703c58fae0c68585812e172aaa7611d2fcee6719d55fd2dfd4fa4",
+    "licence": "MIT (code); KANJIDIC2-derived data CC BY-SA 4.0, EDRDG",
+    "use": "jōyō list, meanings, on/kun readings, strokes, grade, JLPT, newspaper frequency"
+  },
+  "furifont": {
+    "npm": "@furifont/dictionary@0.6.2",
+    "integrity": "sha512-og50d8BFfU/jipWB6xNZHw3VjfQdMJ4OKcj8LnDRPA8NqX9ClC5l4wy1ZhjDKxnLwF5Eztt2bgWQhpta5ravbA==",
+    "file": "package/data/dictionary.json",
+    "licence": "CC BY-SA 4.0 (JMdict 2026-10-15, JMnedict, JmdictFurigana, EDRDG)",
+    "use": "every reading of every spelling, furigana alignment, priority flags (ichi/news/nf), JLPT flags"
+  },
+  "kotobako": {
+    "npm": "kotobako-data@26.7.19",
+    "integrity": "sha512-QjEn0PvJ8W8rTTK7J/+9JYZphM/l5xNI+x3VAououxsd9VM/WoX1Nl5v6qXsyIpYxJnUXsjwSDlGvp7NwMvMMw==",
+    "file": "package/kotobako-static.json",
+    "licence": "CC BY-SA 4.0 (jmdict-simplified 3.6.2 common words; KanjiVG r20250816, CC BY-SA 3.0)",
+    "use": "English glosses for ~23k common JMdict words; KanjiVG stroke paths"
+  },
+  "radk": {
+    "npm": "@johnmorrisdotca/bushu@1.1.0",
+    "integrity": "sha512-0YYk9wAlcZIuB/OPuh9suMv4EspbuxLRlCvrkaLhzgz6TYyxbm9ZDU25c5IwoTSogOUIACxLJlNb4ZlP34WhrQ==",
+    "file": "package/dist/data/radkfile.data.js",
+    "licence": "CC BY-SA 4.0 (RADKFILE/KRADFILE, EDRDG)",
+    "use": "kanji components. Parsed as text, never imported or executed."
+  }
+}
