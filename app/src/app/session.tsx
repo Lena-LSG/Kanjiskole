@@ -10,7 +10,7 @@ import { Pressable, TextInput, View } from "react-native";
 import { AnswerPanel, Marked } from "@/components/AnswerPanel";
 import { Screen } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
-import { Card, Ghost, Group, J, KanjiSquare, LinkButton, Primary, T } from "@/components/ui";
+import { Card, Ghost, Group, J, KanjiSquare, LinkButton, Mixed, Primary, T } from "@/components/ui";
 import { t } from "@/i18n";
 import { useKeys } from "@/lib/useKeys";
 import { data, useApp } from "@/state/AppState";
@@ -306,7 +306,7 @@ function Why({ e }: { e: Explanation }) {
         <T v="bold" size={14} color={C.onNavyMuted} style={{ letterSpacing: 0.5 }}>{t.why.toUpperCase()}</T>
         <T size={13} color={C.onNavyMuted}>{x.tag}</T>
       </View>
-      <T size={17} style={{ lineHeight: 25 }}>{x.text}</T>
+      <Mixed text={x.text} size={17} style={{ lineHeight: 26 }} />
     </Card>
   );
 }

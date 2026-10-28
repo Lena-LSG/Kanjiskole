@@ -15,6 +15,17 @@ export function T({ v = "body", size = 16, color = C.ink, style, ...rest }: Text
 /** Japanese text in the print-style mincho. */
 export const J = (p: TextProps & { size?: number; color?: string }) => <T v="k" {...p} />;
 
+const JA_RUN = /([\u3040-\u30ff\u3400-\u9fff々□]+)/u;
+
+/** Danish prose with any Japanese in it set in the mincho, so 囗 doesn't read as a missing glyph. */
+export function Mixed({ text, size = 16, color = C.ink, style }: { text: string; size?: number; color?: string; style?: StyleProp<TextStyle> }) {
+  return (
+    <T size={size} color={color} style={style}>
+      {text.split(JA_RUN).map((part, i) => (i % 2 ? <J key={i} size={size + 2} color={color}>{part}</J> : part))}
+    </T>
+  );
+}
+
 type BtnProps = Omit<PressableProps, "children"> & { label: string; sub?: string; style?: StyleProp<ViewStyle> };
 
 export function Primary({ label, sub, style, ...rest }: BtnProps) {
