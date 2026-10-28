@@ -2,6 +2,34 @@
 
 Changes to the handover (`HANDOVER.md`) and why. Newest first.
 
+## 2026-10-28: design signed off
+
+Mockups: https://claude.ai/artifact/LqXRxCWaasWmARK7P4mvpe (Hjem, Quiz, Svar + Hvorfor?, Kanji-detalje, Lyntest,
+Kalibrering). **Dark only, no light mode.** These tokens replace the handover's §11 colours; fonts stay
+(Shippori Mincho B1 for Japanese, Zen Kaku Gothic New for the UI).
+
+| Token | Hex | Use |
+|---|---|---|
+| `bg` | `#000000` | ground |
+| `surface` | `#17181C` | cards, list groups |
+| `line` | `#2A2C33` | borders, dividers |
+| `outline` | `#4A4D57` | outlined pills, kanji square |
+| `ink` | `#FFFFFF` | text |
+| `muted` | `#B4B8C4` | secondary text |
+| `faint` | `#8E929E` | hints, key help |
+| `navy` | `#0A0B5C` | hero, prompt and Hvorfor? cards, the "Nye" half |
+| `swoosh` | `#2B1FD6` | the diagonal shape on hero areas |
+| `accent` | `#3B30F0` | primary buttons, Lyntest tab; white text on it |
+| `electric` | `#4A5CFF` | progress, rings, young cards |
+| `highlight` | `#7C95FF` | target kanji, readings, links |
+| `onNavy` | `#E4E6EE` / `#B9BCC8` | text and secondary text on navy |
+| `wrong` | `#F07C66` | 朱: wrong and Again, nothing else |
+| map | `#FFFFFF` mature, `#4A5CFF` young, `#241E8A` learning, `#26282F` unseen | progress map |
+
+Layout cues from SAS: big black-weight headlines and numbers, a white pill CTA on the hero, the split card
+(Repetition | Nye), stat tiles (label top left, chevron top right, number bottom left), grouped list rows, a floating
+pill tab bar (家 Hjem, 字 Kanji, 統 Statistik) with a separate accent button (速 Lyntest).
+
 ## 2026-10-28: after the first review with Lena
 
 **No in-app AI.** The app never calls the Claude API. Claude's part is the MCP server: Claude, in the Claude app,
@@ -25,9 +53,7 @@ connector needs something Claude can reach.
 
 **UI in Danish, built on i18n keys** so English is a later switch, not a rewrite.
 
-**Design:** SAS's app as the reference (her pick): calm navy, white cards, big type, one clear "next thing" card on
-the home screen (their upcoming-flight card is our "N kanji venter"), a bottom tab bar, generous spacing. The
-handover's tokens stay; 藍 indigo already sits close to SAS navy.
+**Design:** SAS's app as the reference (her pick); see "design signed off" above.
 
 ## Data sources
 
