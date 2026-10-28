@@ -5,6 +5,36 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # Expo SDK packages move together, one SDK at a time, and are upgraded deliberately
+      # (versions come from the SDK's bundledNativeModules.json), never one package per PR.
+      - dependency-name: "expo"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "expo-*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@expo/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@expo-google-fonts/*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # React Native ships breaking changes in 0.x minors; React and its types follow the SDK.
+      - dependency-name: "react-native"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "react-native-*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "@react-native/*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # TypeScript majors wait until Expo supports them.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # Node types must match the Node we run (22 in CI and on EAS), not the newest Node.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
