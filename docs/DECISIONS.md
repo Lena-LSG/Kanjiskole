@@ -13,6 +13,8 @@ Changes to the handover (`HANDOVER.md`) and why. Newest first.
 - **Stroke data** is a separate web chunk, loaded when a detail page opens.
 - **Audit:** `npm run audit` fails on high/critical unless accepted in `scripts/audit-accepted.json` with a reason and
   an expiry. One entry today: zod 3 inside `@expo/cli` (build-time only, no patched 3.x).
+- **Language:** Danish by default, English in Indstillinger → Sprog. `app/src/i18n/en.ts` is typed against
+  `da.ts`, so a missing key fails the typecheck. Kanji meanings and glosses stay English in both: that's the data.
 - **No reset button.** The log is append-only and will sync; export and import cover "start over somewhere else".
 
 ## 2026-10-28: design signed off

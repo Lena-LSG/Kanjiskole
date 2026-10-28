@@ -77,7 +77,7 @@ export default function Stats() {
               <View key={key} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <View style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: color, borderWidth: key === "unseen" ? 1 : 0, borderColor: C.outline }} />
                 <T size={16} style={{ flex: 1 }}>{t.home.legend[key]}</T>
-                <T v="bold" size={16}>{n.toLocaleString("da-DK")}</T>
+                <T v="bold" size={16}>{t.num(n)}</T>
               </View>
             ))}
           </Card>

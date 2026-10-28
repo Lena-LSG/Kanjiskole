@@ -4,7 +4,20 @@ import type { Explanation } from "@kanjiskole/core";
 const n = (x: number) => x.toLocaleString("da-DK");
 
 export const da = {
-  greeting(hour: number) {
+  locale: "da-DK",
+  num: n,
+  misc: {
+    flashcard: "Flashcard",
+    kanjiNo: (i: number) => `Kanji #${n(i)}`,
+    grade: (g: number) => `${g}. klasse`,
+    dataVersion: (v: string) => `Data ${v}`,
+  },
+  error: {
+    title: "Noget gik i stykker.",
+    body: "Dine fremskridt er gemt. Det er kun skærmen, der faldt.",
+    retry: "Prøv igen",
+  },
+  greeting(hour: number): string {
     if (hour >= 4 && hour < 10) return "God morgen";
     if (hour < 17 && hour >= 10) return "God dag";
     if (hour < 23 && hour >= 17) return "God aften";
@@ -23,7 +36,7 @@ export const da = {
     ofToday: (x: number) => `af ${n(x)} i dag`,
     accuracy: "Træfsikkerhed",
     streak: "Stime",
-    streakSub: (x: number) => (x === 1 ? "dag i træk" : "dage i træk"),
+    streakSub: (x: number): string => (x === 1 ? "dag i træk" : "dage i træk"),
     known: "Kendte kanji",
     knownSub: (total: number) => `af ${n(total)} jōyō`,
     blitzBest: "Lyntest-rekord",
@@ -119,7 +132,7 @@ export const da = {
     if (days < 365) return `${Math.round(days / 30)} md`;
     return `${(days / 365).toFixed(1).replace(".", ",")} år`;
   },
-  grades: ["Igen", "Svært", "Godt", "Let"] as const,
+  grades: ["Igen", "Svært", "Godt", "Let"] as readonly string[],
   panel: {
     strokes: (x: number) => `${x} streger`,
     freq: (i: number) => `#${n(i + 1)} i hyppighed`,
@@ -158,7 +171,7 @@ export const da = {
     results: (x: number) => `${n(x)} kanji`,
     none: "Ingen kanji passer. Prøv romaji, kana eller engelsk.",
     stage: "Stadie",
-    stages: ["Ikke set", "I gang", "Ung", "Moden"] as const,
+    stages: ["Ikke set", "I gang", "Ung", "Moden"] as readonly string[],
     next: "Næste",
     inDays: (d: number) => (d <= 0 ? "i dag" : `om ${n(d)} d`),
     lapses: "Fejl",
@@ -203,6 +216,8 @@ export const da = {
     about: "Om data",
     aboutText:
       "Kanji, ord og komponenter fra KANJIDIC2, JMdict, RADKFILE og KRADFILE, ejet af Electronic Dictionary Research and Development Group og brugt under gruppens licens (CC BY-SA 4.0). Stregrækkefølge fra KanjiVG (CC BY-SA 3.0).",
+    language: "Sprog",
+    languages: { da: "Dansk", en: "English" },
     close: "Luk",
   },
 };

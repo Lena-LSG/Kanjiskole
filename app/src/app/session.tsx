@@ -106,7 +106,7 @@ function Flash({ bar, status, kanjiK, card, onSettle }: { bar: React.ReactNode; 
   return (
     <Screen>
       {bar}
-      <Chips a="Flashcard" b={status} />
+      <Chips a={t.misc.flashcard} b={status} />
       <Card navy style={{ alignItems: "center", gap: 12, paddingVertical: 28 }}>
         <KanjiSquare k={kanji.k} size={150} />
         {word ? <Marked word={word.w} k={kanji.k} size={40} /> : null}

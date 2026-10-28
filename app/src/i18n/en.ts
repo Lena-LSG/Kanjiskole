@@ -1,0 +1,224 @@
+// English UI copy. Typed against the Danish dictionary, so a missing key is a compile error.
+import type { Explanation } from "@kanjiskole/core";
+import type { Strings } from "./da";
+
+const n = (x: number) => x.toLocaleString("en-GB");
+
+export const en: Strings = {
+  locale: "en-GB",
+  num: n,
+  misc: {
+    flashcard: "Flashcard",
+    kanjiNo: (i: number) => `Kanji #${n(i)}`,
+    grade: (g: number) => `grade ${g}`,
+    dataVersion: (v: string) => `Data ${v}`,
+  },
+  error: {
+    title: "Something broke.",
+    body: "Your progress is saved. Only the screen fell over.",
+    retry: "Try again",
+  },
+  greeting(hour: number) {
+    if (hour >= 4 && hour < 12) return "Good morning";
+    if (hour >= 12 && hour < 17) return "Good afternoon";
+    if (hour >= 17 && hour < 23) return "Good evening";
+    return "It's late";
+  },
+  home: {
+    waiting: (x: number) => (x === 1 ? "1 kanji waiting for you" : `${n(x)} kanji waiting for you`),
+    doneTitle: "Done for today",
+    doneSub: "Nothing's due until tomorrow. You can take five extra new ones if you're bored.",
+    summary: (due: number, fresh: number, min: number) => `${n(due)} reviews · ${n(fresh)} new · about ${n(min)} min`,
+    start: "Start session",
+    extra: "5 extra new",
+    reviews: "Reviews",
+    dueToday: "due today",
+    fresh: "New",
+    ofToday: (x: number) => `of ${n(x)} today`,
+    accuracy: "Accuracy",
+    streak: "Streak",
+    streakSub: (x: number) => (x === 1 ? "day in a row" : "days in a row"),
+    known: "Known kanji",
+    knownSub: (total: number) => `of ${n(total)} jōyō`,
+    blitzBest: "Blitz record",
+    blitzSub: "points in 60 sec.",
+    map: "The map",
+    mapSub: "one cell per kanji, in frequency order",
+    mapLabel: (m: number, y: number, l: number, u: number) => `Progress: ${n(m)} mature, ${n(y)} young, ${n(l)} learning, ${n(u)} not seen`,
+    legend: { mature: "Mature", young: "Young", learning: "Learning", unseen: "Not seen" },
+    calibrate: "Calibrate: which do you already know?",
+    weakest: "Your weakest kanji",
+    settings: "Settings",
+    profile: "Settings",
+    search: "Search kanji",
+  },
+  tabs: { home: "Home", kanji: "Kanji", stats: "Stats", blitz: "Blitz", nav: "Main menu" },
+  session: {
+    pause: "Pause",
+    newKanji: "New kanji",
+    newTest: "New · test",
+    again: "Again",
+    review: "Review",
+    gotIt: "Got it, test me",
+    show: "Show answer",
+    flashPrompt: "Meaning? And how is the word read?",
+    flashPromptNoWord: "Meaning and reading?",
+    keysOpts: "1–4 choose · Enter next · Esc pause",
+    keysTyped: "Enter check / next · Esc pause",
+    keysIntro: "Enter next · Esc pause",
+    keysFlash: "Space show · 1–4 answer · Esc pause",
+    right: ["正解", "その通り", "完璧"],
+    rightSuffix: "correct",
+    wrong: "Wrong",
+    youWrote: "You wrote",
+    correctIs: "correct is",
+    alsoRight: (main: string) => `Also correct. The usual reading is ${main}.`,
+    guessed: "Guessed",
+    next: "Next",
+    tooEasy: "Too easy",
+    comesBack: "back in a moment",
+    alsoValid: "My answer was also a valid reading",
+    check: "Check",
+    typePlaceholder: "e.g. jikan or じかん",
+    finishedTitle: "Done for now",
+    finished: (answers: number, fresh: number) => `${n(answers)} answers today, ${n(fresh)} new kanji. 済 (sumi) means "finished".`,
+    back: "Back",
+    nothing: "Nothing to do right now.",
+  },
+  kinds: {
+    mean: { label: "Meaning", q: "What does it mean?" },
+    which: { label: "Find the kanji", q: "Which kanji means" },
+    fill: { label: "Build the word", q: "Which kanji is missing?" },
+    read: { label: "Reading", q: "How is it read?" },
+    type: { label: "Type the reading", q: "Type the reading (romaji or kana)" },
+  },
+  why: "Why?",
+  explain(e: Explanation): { tag: string; text: string } {
+    switch (e.code) {
+      case "rendaku":
+        return e.missed
+          ? { tag: "Rendaku", text: `${e.kanji} gets voiced at the back of a compound: ${e.correct}. You know the rule. You just didn't use it.` }
+          : { tag: "Rendaku", text: `No rendaku here: ${e.kanji} is ${e.correct}. Not everything voices just because it can.` };
+      case "voicing":
+        return { tag: "Voicing", text: `One sound voiced wrong. Correct is ${e.correct}. Dakuten count.` };
+      case "long-vowel":
+        return e.missed
+          ? { tag: "Long vowel", text: "You dropped a long vowel. In Japanese that's a different word, not an accent." }
+          : { tag: "Long vowel", text: "There's no long vowel here. You added one." };
+      case "sokuon":
+        return e.missed
+          ? { tag: "Small っ", text: "You're missing the small っ: the pause is part of the word." }
+          : { tag: "Small っ", text: "There's no っ here. The pause only exists in your head." };
+      case "small-kana":
+        return { tag: "Small kana", text: `ゃゅょ are not やゆよ. Correct is ${e.correct}.` };
+      case "other-reading":
+        return {
+          tag: e.usedIsOn ? "On instead of kun" : "Kun instead of on",
+          text: `You read ${e.kanji} as ${e.used}. That's a real reading of ${e.kanji}, just not in this word, where it's ${e.correct}.`,
+        };
+      case "rare-reading":
+        return { tag: "Rare reading", text: "That reading exists, but not as the answer for this word. Go with the usual one." };
+      case "lookalike":
+        return {
+          tag: "Mix-up",
+          text: e.shared.length
+            ? `${e.chosen} and ${e.target} share ${e.shared.join(" + ")}. Look at what's different.`
+            : `${e.chosen} and ${e.target} look alike. That's the point. Look again.`,
+        };
+    }
+  },
+  intervals(days: number) {
+    if (days === 0) return "now";
+    if (days < 31) return `${days} d`;
+    if (days < 365) return `${Math.round(days / 30)} mo`;
+    return `${(days / 365).toFixed(1)} yr`;
+  },
+  grades: ["Again", "Hard", "Good", "Easy"],
+  panel: {
+    strokes: (x: number) => `${x} strokes`,
+    freq: (i: number) => `#${n(i + 1)} by frequency`,
+    parts: "Parts",
+  },
+  blitz: {
+    title: "Blitz",
+    intro: "60 seconds, four options, as many right as you can. Three right in a row gives double points.",
+    mine: "Questions come from your own kanji, weighted towards the ones you get wrong.",
+    top: "You have fewer than 20 kanji going, so questions come from the 300 most common.",
+    best: (x: number) => (x ? `Your record: ${n(x)}` : "No record yet."),
+    start: "Start",
+    points: "points",
+    inARow: (x: number) => `${x} in a row · ×2`,
+    record: "Record",
+    sub: "Blitz · 60 seconds",
+    zero: ["Zero points.", "That doesn't count as a record. Or as an effort."],
+    newRecord: ["New record.", "You probably won't beat it tomorrow. Prove me wrong."],
+    off: (gap: number) => [`${n(gap)} off the record.`, "Not your best. You know that."],
+    close: (gap: number) => [`${n(gap)} off the record.`, "Close. Once more?"],
+    misses: (x: number) => `Misses (${x})`,
+    missesNote: "added to today's reviews",
+    again: "Again",
+    home: "Home",
+  },
+  calibrate: {
+    title: "Which can you read?",
+    body: "Tap the ones where you know the meaning and at least one reading. Be honest: in 3–4 weeks you'll have to type the reading yourself.",
+    picked: (x: number, total: number) => `${n(x)} picked · ${n(total)} calibrated so far`,
+    next: "Next 25",
+    stop: "Save and stop",
+    done: "You're through all 2,136. Impressive, or you weren't honest.",
+  },
+  kanji: {
+    search: "Kanji, reading or meaning",
+    results: (x: number) => `${n(x)} kanji`,
+    none: "No kanji match. Try romaji, kana or English.",
+    stage: "Stage",
+    stages: ["Not seen", "Learning", "Young", "Mature"],
+    next: "Next",
+    inDays: (d: number) => (d <= 0 ? "today" : `in ${n(d)} d`),
+    lapses: "Lapses",
+    words: "Words",
+    notSeen: "not seen",
+    mnemonic: "MNEMONIC",
+    mnemonicEmpty: "No mnemonic yet. Write your own; they work best.",
+    edit: "Edit",
+    save: "Save",
+    cancel: "Cancel",
+    strokes: "Stroke order",
+    queue: "Queue it",
+    queued: "Queued",
+    leech: "Leech: you've failed this 8+ times. A mnemonic helps.",
+  },
+  stats: {
+    title: "Stats",
+    perDay: "Reviews, 14 days",
+    retention: "Accuracy, 30 days",
+    streak: "Streak",
+    stages: "Stages",
+    leeches: "Leeches",
+    leechesNone: "No leeches. Yet.",
+    weakest: "Weakest right now",
+    weakestNone: "Learn some kanji first.",
+  },
+  settings: {
+    title: "Settings",
+    perDay: "New kanji per day",
+    style: "Reviews as",
+    quiz: "Mixed quiz",
+    flash: "Flashcards",
+    importTitle: "Import from the prototype",
+    importHelp: "Paste the JSON from the old Kanjiskole (or pick the file). Cards, record and settings carry over; importing twice changes nothing.",
+    importPick: "Pick file",
+    importRun: "Import",
+    imported: (x: number, skipped: number) => `${n(x)} cards imported${skipped ? `, ${n(skipped)} skipped` : ""}.`,
+    importFailed: "That wasn't a Kanjiskole export.",
+    exportTitle: "Export everything",
+    exportHelp: "Your whole history as JSON. You're never locked in.",
+    exportRun: "Export",
+    about: "About the data",
+    aboutText:
+      "Kanji, words and components from KANJIDIC2, JMdict, RADKFILE and KRADFILE, the property of the Electronic Dictionary Research and Development Group, used under the Group's licence (CC BY-SA 4.0). Stroke order from KanjiVG (CC BY-SA 3.0).",
+    language: "Language",
+    languages: { da: "Dansk", en: "English" },
+    close: "Close",
+  },
+};

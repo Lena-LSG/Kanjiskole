@@ -83,7 +83,7 @@ export default function KanjiDetail() {
     <Screen>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Circle label={t.session.back} onPress={leave}><T size={22}>‹</T></Circle>
-        <T v="bold" size={17}>Kanji #{kanji.i + 1}</T>
+        <T v="bold" size={17}>{t.misc.kanjiNo(kanji.i + 1)}</T>
         {card?.queuedAt !== undefined
           ? <T size={15} color={C.muted}>{t.kanji.queued}</T>
           : !isStarted(card)
@@ -95,7 +95,7 @@ export default function KanjiDetail() {
         <KanjiSquare k={k} size={180} />
         <T v="black" size={30} style={{ textAlign: "center" }} accessibilityRole="header">{kanji.m.slice(0, 3).join(", ")}</T>
         <T size={14} color={C.muted} style={{ textAlign: "center" }}>
-          {[t.panel.strokes(kanji.s), kanji.g <= 6 ? `grade ${kanji.g}` : null, kanji.j ? `N${kanji.j}` : null].filter(Boolean).join(" · ")}
+          {[t.panel.strokes(kanji.s), kanji.g <= 6 ? t.misc.grade(kanji.g) : null, kanji.j ? `N${kanji.j}` : null].filter(Boolean).join(" · ")}
           {kanji.c.length ? <> · {t.panel.parts.toLowerCase()} <J size={16}>{kanji.c.join(" + ")}</J></> : null}
         </T>
       </View>

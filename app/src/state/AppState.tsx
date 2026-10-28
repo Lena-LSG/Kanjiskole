@@ -5,6 +5,7 @@ import {
 } from "@kanjiskole/core";
 import { randomUUID } from "expo-crypto";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import type { Lang } from "@/i18n";
 import { store } from "@/storage/store";
 import raw from "../../../assets/data/kanji.v1.json";
 
@@ -14,8 +15,9 @@ export interface Settings {
   newPerDay: number;
   reviewStyle: ReviewStyle;
   rolloverHour: number;
+  uiLang: Lang;
 }
-export const DEFAULT_SETTINGS: Settings = { newPerDay: 10, reviewStyle: "quiz", rolloverHour: DEFAULT_ROLLOVER };
+export const DEFAULT_SETTINGS: Settings = { newPerDay: 10, reviewStyle: "quiz", rolloverHour: DEFAULT_ROLLOVER, uiLang: "da" };
 
 export interface BlitzRun { at: number; score: number; misses: string[] }
 

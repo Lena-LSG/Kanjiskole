@@ -8,10 +8,11 @@ import { C } from "@/theme";
 import { MAX_W } from "./Screen";
 import { J, T } from "./ui";
 
-const TABS: Record<string, { icon: string; label: string }> = {
-  index: { icon: "家", label: t.tabs.home },
-  kanji: { icon: "字", label: t.tabs.kanji },
-  stats: { icon: "統", label: t.tabs.stats },
+// Labels are read at render time: `t` changes when the language does.
+const TABS: Record<string, { icon: string; label: () => string }> = {
+  index: { icon: "家", label: () => t.tabs.home },
+  kanji: { icon: "字", label: () => t.tabs.kanji },
+  stats: { icon: "統", label: () => t.tabs.stats },
 };
 
 export const TAB_BAR_SPACE = 112;
@@ -41,7 +42,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
                 style={{ flex: 1, height: 60, borderRadius: 30, backgroundColor: on ? C.tabActive : "transparent", alignItems: "center", justifyContent: "center", gap: 2 }}
               >
                 <J size={20} style={{ lineHeight: 22 }} accessibilityElementsHidden importantForAccessibility="no">{tab.icon}</J>
-                <T size={13}>{tab.label}</T>
+                <T size={13}>{tab.label()}</T>
               </Pressable>
             );
           })}

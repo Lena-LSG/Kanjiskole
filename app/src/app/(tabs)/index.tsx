@@ -101,7 +101,7 @@ export default function Home() {
             <Tile label={t.home.streak}><Big n={String(days)} sub={t.home.streakSub(days)} /></Tile>
           </View>
           <View style={{ flexDirection: "row", gap: 12 }}>
-            <Tile label={t.home.known} onPress={() => router.navigate("/kanji")}><Big n={c.started.toLocaleString("da-DK")} sub={t.home.knownSub(data.kanji.length)} /></Tile>
+            <Tile label={t.home.known} onPress={() => router.navigate("/kanji")}><Big n={t.num(c.started)} sub={t.home.knownSub(data.kanji.length)} /></Tile>
             <Tile label={t.home.blitzBest} onPress={() => router.push("/blitz")}><Big n={String(meta.blitzBest)} sub={t.home.blitzSub} /></Tile>
           </View>
 

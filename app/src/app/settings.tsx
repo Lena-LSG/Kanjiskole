@@ -5,7 +5,7 @@ import { Pressable, TextInput, View } from "react-native";
 import { Screen } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
 import { Card, Ghost, Primary, T } from "@/components/ui";
-import { t } from "@/i18n";
+import { LANGS, t } from "@/i18n";
 import { pickText, saveText } from "@/lib/files";
 import { useKeys } from "@/lib/useKeys";
 import { data, useApp } from "@/state/AppState";
@@ -69,6 +69,9 @@ export default function Settings() {
         <T v="bold" size={17} style={{ marginTop: 8 }}>{t.settings.style}</T>
         <Segmented options={[["quiz", t.settings.quiz], ["flash", t.settings.flash]]} value={meta.settings.reviewStyle}
           onChange={(v) => setMeta("settings", { ...meta.settings, reviewStyle: v })} />
+        <T v="bold" size={17} style={{ marginTop: 8 }}>{t.settings.language}</T>
+        <Segmented options={LANGS.map((l) => [l, t.settings.languages[l]] as [typeof l, string])} value={meta.settings.uiLang}
+          onChange={(l) => setMeta("settings", { ...meta.settings, uiLang: l })} />
       </Card>
 
       <Card style={{ gap: 12 }}>
@@ -93,7 +96,7 @@ export default function Settings() {
       <Card style={{ gap: 8 }}>
         <T v="bold" size={17}>{t.settings.about}</T>
         <T size={13} color={C.muted} style={{ lineHeight: 19 }}>{t.settings.aboutText}</T>
-        <T size={12} color={C.faint}>Data {data.version}</T>
+        <T size={12} color={C.faint}>{t.misc.dataVersion(data.version)}</T>
       </Card>
     </Screen>
   );
