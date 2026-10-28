@@ -23,4 +23,4 @@ npm run build:web # static export to app/dist
 Android (EAS, from `app/`): `npx eas-cli@latest login`, `npx eas-cli@latest init` once, then
 `npx eas-cli@latest build -p android --profile preview` for an installable APK.
 
-Data licences: `assets/data/LICENSES.md`.
+Setting up a machine: `docs/DEV-SETUP.md`. Data licences: `assets/data/LICENSES.md`.
