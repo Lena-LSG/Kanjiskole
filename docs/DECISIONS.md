@@ -15,6 +15,9 @@ Changes to the handover (`HANDOVER.md`) and why. Newest first.
   an expiry. One entry today: zod 3 inside `@expo/cli` (build-time only, no patched 3.x).
 - **Language:** Danish by default, English in Indstillinger → Sprog. `app/src/i18n/en.ts` is typed against
   `da.ts`, so a missing key fails the typecheck. Kanji meanings and glosses stay English in both: that's the data.
+- **Dependabot** never touches the Expo SDK set (expo, expo-*, React, React Native and their libraries), not even
+  patches: an SDK upgrade is one deliberate change from `bundledNativeModules.json`. Everything else has a 14-day
+  cooldown, and dev tooling comes grouped into one PR.
 - **No reset button.** The log is append-only and will sync; export and import cover "start over somewhere else".
 
 ## 2026-10-28: design signed off

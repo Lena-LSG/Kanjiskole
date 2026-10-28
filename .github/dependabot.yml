@@ -5,30 +5,26 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # Nothing younger than two weeks (same rule as the hand-picked pins).
+    cooldown:
+      default-days: 14
+    groups:
+      tooling:
+        dependency-type: development
+        update-types: ["minor", "patch"]
     ignore:
-      # Expo SDK packages move together, one SDK at a time, and are upgraded deliberately
-      # (versions come from the SDK's bundledNativeModules.json), never one package per PR.
+      # Everything an Expo SDK pins moves only with a deliberate SDK upgrade, taken from that SDK's
+      # bundledNativeModules.json. Even a patch can break it: React Native 0.86 needs react exactly 19.2.3.
       - dependency-name: "expo"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "expo-*"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "@expo/*"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "@expo-google-fonts/*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
-      # React Native ships breaking changes in 0.x minors; React and its types follow the SDK.
-      - dependency-name: "react-native"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
-      - dependency-name: "react-native-*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
-      - dependency-name: "@react-native/*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "react"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "react-dom"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "react-native"
+      - dependency-name: "react-native-*"
+      - dependency-name: "@react-native/*"
       - dependency-name: "@types/react"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       # TypeScript majors wait until Expo supports them.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
@@ -39,3 +35,5 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 14
