@@ -7,6 +7,20 @@
       "path": "expo > @expo/cli > zod@3",
       "reason": "Build-time only: @expo/cli validates app.json with it. Not in the app bundle, no untrusted input reaches it. No patched zod 3.x exists; npm's only fix is downgrading to Expo SDK 51.",
       "expires": "2027-01-31"
+    },
+    {
+      "id": "GHSA-vcc3-ghjq-m6fr",
+      "package": "decode-uri-component",
+      "path": "expo-router > query-string@7 > decode-uri-component@0.2.2",
+      "reason": "Runtime, in URL parsing: a crafted link to the app could hang that tab (DoS, single user, no data exposure). The fix (0.5.1, 2026-10-23) is younger than our two-week rule and a major jump under query-string 7; re-test it as an override once it has aged.",
+      "expires": "2026-11-15"
+    },
+    {
+      "id": "GHSA-gcqx-w48m-w2h4",
+      "package": "deepmerge",
+      "path": "expo > @expo/config > deepmerge@4.3.1",
+      "reason": "Build-time only: merges our own app.json config. No untrusted input reaches it, no fixed release exists.",
+      "expires": "2027-01-31"
     }
   ]
 }
