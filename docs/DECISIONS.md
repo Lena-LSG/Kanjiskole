@@ -2,6 +2,19 @@
 
 Changes to the handover (`HANDOVER.md`) and why. Newest first.
 
+## 2026-10-28: M2 app shell
+
+- **Expo SDK 57** (React Native 0.86), not 58: 58 was a month old. Versions are exact pins taken from SDK 57's own
+  `bundledNativeModules.json` (the Expo version API is blocked from the build sandbox), each at least two weeks old.
+- **Storage:** SQLite on Android (`expo-sqlite`), IndexedDB on the web. expo-sqlite's web build needs COOP/COEP
+  headers, which GitHub Pages can't send. Both behind one `Store` interface; events are insert-or-ignore by id.
+- **Fonts:** bundled TTFs on Android (no network); Google Fonts on the web, where unicode-range subsetting serves a
+  few hundred KB instead of a 15 MB Shippori Mincho file.
+- **Stroke data** is a separate web chunk, loaded when a detail page opens.
+- **Audit:** `npm run audit` fails on high/critical unless accepted in `scripts/audit-accepted.json` with a reason and
+  an expiry. One entry today: zod 3 inside `@expo/cli` (build-time only, no patched 3.x).
+- **No reset button.** The log is append-only and will sync; export and import cover "start over somewhere else".
+
 ## 2026-10-28: design signed off
 
 Mockups: https://claude.ai/artifact/LqXRxCWaasWmARK7P4mvpe (Hjem, Quiz, Svar + Hvorfor?, Kanji-detalje, Lyntest,

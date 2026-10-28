@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Kanjiskole",
+    "slug": "kanjiskole",
+    "scheme": "kanjiskole",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#000000",
+    "splash": { "image": "./assets/splash-icon.png", "resizeMode": "contain", "backgroundColor": "#000000" },
+    "android": {
+      "package": "eu.lenagibson.kanjiskole",
+      "adaptiveIcon": {
+        "backgroundColor": "#3B30F0",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "bundler": "metro",
+      "name": "Kanjiskole",
+      "themeColor": "#000000",
+      "backgroundColor": "#000000",
+      "lang": "da"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      ["expo-splash-screen", { "image": "./assets/splash-icon.png", "imageWidth": 160, "backgroundColor": "#000000" }]
+    ],
+    "experiments": { "typedRoutes": false }
+  }
+}

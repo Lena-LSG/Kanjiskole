@@ -56,8 +56,13 @@ export function explainReading(answer: string, word: Word, data: KanjiData): Exp
       const i = diff[0]!, x = a[i]!, y = b[i]!;
       if (unvoice(x) === unvoice(y)) {
         const s = spans.find((sp) => sp.start === i && sp.start > 0);
-        if (s) return { code: "rendaku", kanji: s.kanji, correct: s.reading, missed: VOICED.includes(y) };
-        return { code: "voicing", correct: right };
+        // Rendaku only if the voiced form isn't a reading of its own: 一度 いちど is ド, not voiced と.
+        const voicedSide = VOICED.includes(y) ? right : got;
+        const voicedSeg = s && voicedSide.slice(s.start, s.start + s.reading.length);
+        if (s && voicedSeg && !data.readingsOf(s.kanji).includes(voicedSeg)) {
+          return { code: "rendaku", kanji: s.kanji, correct: s.reading, missed: VOICED.includes(y) };
+        }
+        if (!s || !data.readingsOf(s.kanji).includes(got.slice(s.start, s.start + s.reading.length))) return { code: "voicing", correct: right };
       }
       if (SMALL.indexOf(x) >= 0 && LARGE[SMALL.indexOf(x)] === y || SMALL.indexOf(y) >= 0 && LARGE[SMALL.indexOf(y)] === x) {
         return { code: "small-kana", correct: right };

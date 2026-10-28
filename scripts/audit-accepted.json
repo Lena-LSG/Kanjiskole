@@ -1,0 +1,12 @@
+{
+  "$comment": "Advisories we knowingly accept. Each needs a reason and an expiry; scripts/audit.ts fails once it lapses.",
+  "accepted": [
+    {
+      "id": "GHSA-mrhx-c7xc-m3w5",
+      "package": "zod",
+      "path": "expo > @expo/cli > zod@3",
+      "reason": "Build-time only: @expo/cli validates app.json with it. Not in the app bundle, no untrusted input reaches it. No patched zod 3.x exists; npm's only fix is downgrading to Expo SDK 51.",
+      "expires": "2027-01-31"
+    }
+  ]
+}

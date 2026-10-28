@@ -26,6 +26,8 @@ describe("judgeTyped", () => {
 
 describe("explainReading", () => {
   it("rendaku", () => expect(explainReading("てかみ", w("手紙"), d)).toMatchObject({ code: "rendaku", kanji: "紙", correct: "がみ", missed: true }));
+  it("not rendaku when the voiced form is the kanji's own reading", () =>
+    expect(explainReading("いちと", w("一度"), d)).toMatchObject({ code: "other-reading", kanji: "度", used: "と", correct: "ど" }));
   it("long vowel", () => expect(explainReading("ゆめい", w("有名"), d)).toMatchObject({ code: "long-vowel", missed: true }));
   it("sokuon", () => expect(explainReading("がこう", w("学校"), d)).toMatchObject({ code: "sokuon", missed: true }));
   it("another reading of the kanji", () =>

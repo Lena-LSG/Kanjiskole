@@ -56,54 +56,61 @@ function seededCard(at: number, due: number, stability: number, difficulty: numb
   };
 }
 
+/**
+ * Applies one event to the cards, in place on the map. Card objects are replaced, never mutated, so a UI holding
+ * the previous objects sees a change. Events must arrive in `byTime` order; `replay` does that for a whole log.
+ */
+export function applyEvent(cards: Map<string, CardState>, e: KanjiEvent, f: FSRS, rolloverHour = DEFAULT_ROLLOVER): void {
+  const prev = cards.get(e.k);
+  switch (e.t) {
+    case "review": {
+      const c: CardState = prev
+        ? { ...prev }
+        : { k: e.k, fsrs: createEmptyCard(new Date(e.at)), needsTypedCheck: false, lapses: 0, firstSeen: e.at };
+      const wasReview = c.fsrs.state === State.Review;
+      c.fsrs = f.next(c.fsrs, new Date(e.at), e.grade as Grade).card;
+      if (e.grade === 1 && wasReview) c.lapses++;
+      if (e.ex === "type" && e.ok) c.needsTypedCheck = false;
+      c.queuedAt = undefined;
+      cards.set(e.k, c);
+      break;
+    }
+    case "calibrate":
+      if (prev && prev.fsrs.reps > 0) break; // already studied: calibration doesn't override real history
+      cards.set(e.k, {
+        k: e.k, fsrs: seededCard(e.at, e.due, CALIBRATED_STABILITY, 4, 1, 0),
+        needsTypedCheck: true, lapses: 0, firstSeen: e.at,
+      });
+      break;
+    case "import": {
+      // SM-2 → FSRS: interval approximates stability; ease 250 ≈ difficulty 5, lower ease = harder.
+      const difficulty = Math.min(10, Math.max(1, 5 + (250 - e.ease) / 24));
+      const card = e.reps > 0
+        ? seededCard(e.at, e.due, Math.max(0.5, e.interval), difficulty, e.reps, e.lapses)
+        : createEmptyCard(new Date(e.at));
+      cards.set(e.k, { k: e.k, fsrs: card, needsTypedCheck: e.calibrated && e.reps <= 1, lapses: e.lapses, firstSeen: e.at });
+      break;
+    }
+    case "blitz-miss":
+      if (prev && prev.fsrs.reps > 0 && prev.fsrs.due.getTime() >= endOfStudyDay(e.at, rolloverHour)) {
+        cards.set(e.k, { ...prev, fsrs: { ...prev.fsrs, due: new Date(e.at) } });
+      }
+      break;
+    case "queue":
+      if (!prev) cards.set(e.k, { k: e.k, fsrs: createEmptyCard(new Date(e.at)), needsTypedCheck: false, lapses: 0, queuedAt: e.at });
+      else if (prev.fsrs.state === State.New) cards.set(e.k, { ...prev, queuedAt: e.at });
+      break;
+  }
+}
+
 /** Replays a log into card states. Pure: same events in, same cards out. */
 export function replay(
   events: readonly KanjiEvent[],
   opts: SchedulerOptions & { rolloverHour?: number } = {},
 ): Map<string, CardState> {
   const f = scheduler(opts);
-  const roll = opts.rolloverHour ?? DEFAULT_ROLLOVER;
   const cards = new Map<string, CardState>();
-  for (const e of [...events].sort(byTime)) {
-    let c = cards.get(e.k);
-    switch (e.t) {
-      case "review": {
-        if (!c) c = { k: e.k, fsrs: createEmptyCard(new Date(e.at)), needsTypedCheck: false, lapses: 0, firstSeen: e.at };
-        const wasReview = c.fsrs.state === State.Review;
-        c.fsrs = f.next(c.fsrs, new Date(e.at), e.grade as Grade).card;
-        if (e.grade === 1 && wasReview) c.lapses++;
-        if (e.ex === "type" && e.ok) c.needsTypedCheck = false;
-        c.queuedAt = undefined;
-        cards.set(e.k, c);
-        break;
-      }
-      case "calibrate":
-        if (c && c.fsrs.reps > 0) break; // already studied: calibration doesn't override real history
-        cards.set(e.k, {
-          k: e.k, fsrs: seededCard(e.at, e.due, CALIBRATED_STABILITY, 4, 1, 0),
-          needsTypedCheck: true, lapses: 0, firstSeen: e.at,
-        });
-        break;
-      case "import": {
-        // SM-2 → FSRS: interval approximates stability; ease 250 ≈ difficulty 5, lower ease = harder.
-        const difficulty = Math.min(10, Math.max(1, 5 + (250 - e.ease) / 24));
-        const card = e.reps > 0
-          ? seededCard(e.at, e.due, Math.max(0.5, e.interval), difficulty, e.reps, e.lapses)
-          : createEmptyCard(new Date(e.at));
-        cards.set(e.k, { k: e.k, fsrs: card, needsTypedCheck: e.calibrated && e.reps <= 1, lapses: e.lapses, firstSeen: e.at });
-        break;
-      }
-      case "blitz-miss":
-        if (c && c.fsrs.reps > 0 && c.fsrs.due.getTime() >= endOfStudyDay(e.at, roll)) {
-          c.fsrs = { ...c.fsrs, due: new Date(e.at) };
-        }
-        break;
-      case "queue":
-        if (!c) cards.set(e.k, { k: e.k, fsrs: createEmptyCard(new Date(e.at)), needsTypedCheck: false, lapses: 0, queuedAt: e.at });
-        else if (c.fsrs.state === State.New) c.queuedAt = e.at;
-        break;
-    }
-  }
+  for (const e of [...events].sort(byTime)) applyEvent(cards, e, f, opts.rolloverHour);
   return cards;
 }
 
