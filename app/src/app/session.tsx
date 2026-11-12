@@ -18,6 +18,7 @@ import { data, useApp } from "@/state/AppState";
 import { C, R } from "@/theme";
 
 const leave = () => (router.canGoBack() ? router.back() : router.replace("/"));
+const isKanjiKey = (k: string) => !!data.get(k);
 
 interface Settle { grade: Grade; ex: ExerciseKind; ok: boolean; word?: string; answer?: string; ms: number }
 
@@ -28,7 +29,7 @@ export default function Session() {
     const now = Date.now();
     const onlyNew = !!extra;
     // `extra` arrives from a URL (kanjiskole://session?extra=…): clamp it, never trust it.
-    const newLimit = onlyNew ? Math.min(30, Math.max(1, Math.floor(Number(extra)) || 5)) : Math.max(0, meta.settings.newPerDay - newToday(events, now, meta.settings.rolloverHour));
+    const newLimit = onlyNew ? Math.min(30, Math.max(1, Math.floor(Number(extra)) || 5)) : Math.max(0, meta.settings.newPerDay - newToday(events, now, meta.settings.rolloverHour, isKanjiKey));
     return buildSession(cards as Map<string, CardState>, data, { now, newLimit, style: meta.settings.reviewStyle, rolloverHour: meta.settings.rolloverHour, onlyNew });
   });
   const total = useRef(q.length).current;
@@ -49,7 +50,7 @@ export default function Session() {
     setStep((x) => x + 1);
   };
 
-  if (!head) return <Finished answers={answers.current} fresh={newToday(events, Date.now(), meta.settings.rolloverHour)} empty={total === 0} />;
+  if (!head) return <Finished answers={answers.current} fresh={newToday(events, Date.now(), meta.settings.rolloverHour, isKanjiKey)} empty={total === 0} />;
 
   const kanji = data.get(head.k)!;
   const card = cards.get(head.k);

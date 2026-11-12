@@ -24,6 +24,8 @@ function Gate() {
       <Stack.Screen name="session" options={{ gestureEnabled: false }} />
       <Stack.Screen name="blitz" options={{ gestureEnabled: false }} />
       <Stack.Screen name="calibrate" />
+      <Stack.Screen name="kana" />
+      <Stack.Screen name="kana-session" options={{ gestureEnabled: false }} />
       <Stack.Screen name="settings" options={{ presentation: "modal" }} />
       <Stack.Screen name="kanji/[k]" />
     </Stack>

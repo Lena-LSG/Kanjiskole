@@ -2,6 +2,9 @@
 import { isLeech, isStarted, scheduler, State, type CardState } from "./cards.ts";
 import { DEFAULT_ROLLOVER, studyDay } from "./day.ts";
 import type { KanjiEvent, ReviewEvent } from "./events.ts";
+import { isKanaKey } from "./kana-track.ts";
+
+const isKanjiCard = (c: CardState) => !isKanaKey(c.k);
 
 const reviews = (events: readonly KanjiEvent[]) =>
   events.filter((e): e is ReviewEvent => e.t === "review" && e.via !== "blitz");
@@ -47,7 +50,7 @@ export interface Weak { k: string; retrievability: number; lapses: number; leech
 /** Started kanji she is most likely to get wrong right now. */
 export function weakest(cards: Map<string, CardState>, now: number, limit = 20): Weak[] {
   const f = scheduler();
-  return [...cards.values()].filter(isStarted)
+  return [...cards.values()].filter((c) => isKanjiCard(c) && isStarted(c))
     .map((c) => ({
       k: c.k,
       retrievability: c.fsrs.state === State.Review ? f.get_retrievability(c.fsrs, new Date(now), false) : 0,
@@ -58,12 +61,12 @@ export function weakest(cards: Map<string, CardState>, now: number, limit = 20):
     .slice(0, limit);
 }
 
-export const leeches = (cards: Map<string, CardState>) => [...cards.values()].filter(isLeech).map((c) => c.k);
+export const leeches = (cards: Map<string, CardState>) => [...cards.values()].filter((c) => isKanjiCard(c) && isLeech(c)).map((c) => c.k);
 
 export function stageCounts(cards: Map<string, CardState>, total: number) {
   const out = { unseen: total, learning: 0, young: 0, mature: 0 };
   for (const c of cards.values()) {
-    if (!isStarted(c)) continue;
+    if (!isKanjiCard(c) || !isStarted(c)) continue;
     out.unseen--;
     if (c.fsrs.state !== State.Review) out.learning++;
     else if (c.fsrs.stability >= 21) out.mature++;

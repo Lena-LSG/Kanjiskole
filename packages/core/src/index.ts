@@ -9,6 +9,7 @@ export * from "./exercises.ts";
 export * from "./explain.ts";
 export * from "./importer.ts";
 export * from "./judge.ts";
+export * from "./kana-track.ts";
 export * from "./kana.ts";
 export * from "./rng.ts";
 export * from "./session.ts";

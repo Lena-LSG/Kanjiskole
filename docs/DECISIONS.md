@@ -2,6 +2,19 @@
 
 Changes to the handover (`HANDOVER.md`) and why. Newest first.
 
+## 2026-11-12: kana track
+
+- Hiragana and katakana are generated in `core/kana-track.ts` (46 basic, 25 dakuten, 33 yōon per script, plus 7
+  katakana extensions such as ファ and シェ), taught hiragana first, basic → dakuten → yōon. ティ, ディ and ヴ wait
+  until the romaji converter supports them.
+- Same event log and FSRS as the kanji, keyed by the kana itself; kanji sessions, blitz, kanji stats and the kanji
+  new-card quota ignore kana cards, and the kana track has its own quota (15 new a day).
+- Exercises: kana → romaji, romaji → kana, typed romaji (Hepburn, Kunrei or kana accepted). New kana get same-row
+  distractors; the known look-alikes (シ/ツ, ソ/ン, ぬ/め…) come once a kana is no longer new, and Hvorfor? only calls
+  something a common mix-up when it is one.
+- "I already know these" calibrates a whole script in one tap; those kana are checked by typing in 3–4 weeks and
+  don't count as solid before that.
+
 ## 2026-11-12: Expo SDK 58
 
 - expo 58.0.21, React Native 0.88.1, React 19.3.0, expo-router 58.0.28; every pin from SDK 58's
