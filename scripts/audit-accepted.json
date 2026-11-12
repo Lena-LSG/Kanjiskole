@@ -21,6 +21,13 @@
       "path": "expo > @expo/config > deepmerge@4.3.1",
       "reason": "Build-time only: merges our own app.json config. No untrusted input reaches it, no fixed release exists.",
       "expires": "2027-01-31"
+    },
+    {
+      "id": "GHSA-qr28-fpjm-wq7f",
+      "package": "decode-uri-component",
+      "path": "expo-router > query-string@7 > decode-uri-component@0.2.2",
+      "reason": "Same exposure as GHSA-vcc3-ghjq-m6fr: a crafted URL could hang that tab or the app (DoS, single user, no data exposure). The only fix is the Expo SDK 58 upgrade (expo-router 58 no longer uses it); planned right after the curriculum work. Short expiry on purpose.",
+      "expires": "2026-12-15"
     }
   ]
 }

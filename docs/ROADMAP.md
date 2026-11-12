@@ -7,6 +7,10 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
 - M2 app shell, Android + web, offline; first EAS APK running on the S26 (2026-10-28)
 - English UI option
 
+## Soon: Expo SDK 58
+- Two decode-uri-component advisories (one high, a URL-parsing DoS) are only fixed by expo-router 58. Upgrade the
+  whole SDK set from SDK 58's bundledNativeModules.json after the curriculum work; the acceptance expires 2026-12-15.
+
 ## Next: M3 sync
 - Supabase project (EU), `SUPABASE_ACCESS_TOKEN` as an environment secret, `EXPO_PUBLIC_SUPABASE_URL` /
   `EXPO_PUBLIC_SUPABASE_ANON_KEY` as variables, network access to `*.supabase.co` and `api.supabase.com`.
