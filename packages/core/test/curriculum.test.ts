@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calibrationDue, replay } from "../src/cards.ts";
-import { maturity, planFor, readableWords, wordDifficulty } from "../src/curriculum.ts";
+import { maturity, planFor, readableWords, readingBreakdown, wordDifficulty } from "../src/curriculum.ts";
 import type { KanjiEvent } from "../src/events.ts";
 import { makeExercise } from "../src/exercises.ts";
 import { seeded } from "../src/rng.ts";
@@ -85,5 +85,16 @@ describe("planFor", () => {
       const ex = makeExercise(k, d, seeded(s), p);
       if ("word" in ex) expect(p.words).toContain(ex.word);
     }
+  });
+});
+
+describe("readingBreakdown", () => {
+  const kinds = (s: string) => readingBreakdown(w(s), d).map((p) => `${p.text}:${p.reading}:${p.kind}${p.base ? "<" + p.base : ""}`);
+  it("explains each part of the reading", () => {
+    expect(kinds("時間")).toEqual(["時:じ:plain", "間:かん:plain"]);
+    expect(kinds("手紙")).toEqual(["手:て:plain", "紙:がみ:rendaku<かみ"]);
+    expect(kinds("学校")).toEqual(["学:がっ:sokuon<がく", "校:こう:plain"]);
+    expect(kinds("今日")).toEqual(["今日:きょう:whole"]);
+    expect(kinds("会う")).toEqual(["会:あ:plain", "う:う:kana"]);
   });
 });

@@ -4,13 +4,16 @@ import {
   newToday, newWords, preview, toKana, wordOf, type CardState, type Explanation, type Grade, type Item, type WordExercise,
 } from "@kanjiskole/core";
 import { router } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Screen } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
-import { Card, Ghost, Group, J, LinkButton, Mixed, Primary, T } from "@/components/ui";
+import { Explain } from "@/components/Explain";
+import { Card, Ghost, Group, J, LinkButton, Primary, T } from "@/components/ui";
 import { t } from "@/i18n";
 import { useKnown } from "@/lib/known";
+import { hasVoice, say, useJapaneseVoice } from "@/lib/speech";
+import { SpeakButton } from "@/components/SpeakButton";
 import { useKeys } from "@/lib/useKeys";
 import { data, useApp } from "@/state/AppState";
 import { C, R } from "@/theme";
@@ -65,9 +68,10 @@ function WordCard({ w, label }: { w: string; label?: string }) {
   return (
     <Card style={{ gap: 6 }}>
       {label ? <T size={13} color={C.muted}>{label}</T> : null}
-      <View style={{ flexDirection: "row", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
         <J size={34}>{word.w}</J>
         <J size={20} color={C.highlight}>{word.r}</J>
+        <SpeakButton text={word.r} size={36} />
         {word.j ? <T size={13} color={C.faint}>N{word.j}</T> : null}
       </View>
       <T size={16} color={C.muted}>{word.g}</T>
@@ -87,6 +91,9 @@ function WordCard({ w, label }: { w: string; label?: string }) {
 
 function Intro({ bar, wordK, onDone }: { bar: React.ReactNode; wordK: string; onDone: () => void }) {
   const word = wordOf(wordK, data)!;
+  const { meta } = useApp();
+  const voice = useJapaneseVoice();
+  useEffect(() => { if (voice && meta.settings.autoSpeak) say(word.r); }, [voice]); // eslint-disable-line react-hooks/exhaustive-deps
   useKeys((key, e) => { if (key === "Enter" || key === " ") { e.preventDefault(); onDone(); } else if (key === "Escape") leave(); });
   return (
     <Screen>
@@ -108,7 +115,9 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
   onSettle: (grade: Grade, ex: WordExercise, ok: boolean, answer: string | undefined, ms: number) => void;
 }) {
   const word = wordOf(wordK, data)!;
-  const ex = useMemo(() => makeWordExercise(word, card, data, Math.random), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const { meta } = useApp();
+  const ex = useMemo(() => makeWordExercise(word, card, data, Math.random, { audio: hasVoice() }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (ex.kind === "word-listen") say(word.r); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const start = useRef(Date.now()).current;
   const [res, setRes] = useState<{ ok: boolean; answer: string; at: number; alt?: boolean } | null>(null);
   const [typed, setTyped] = useState("");
@@ -116,6 +125,7 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
   const right = useMemo(() => t.session.right[Math.floor(Math.random() * t.session.right.length)]!, []);
 
   const go = (g: Grade, ok = res?.ok ?? false) => onSettle(g, ex, ok, res?.answer, (res?.at ?? Date.now()) - start);
+  useEffect(() => { if (res && meta.settings.autoSpeak && ex.kind !== "word-listen") say(word.r); }, [res !== null]); // eslint-disable-line react-hooks/exhaustive-deps
   const choose = (o: { label: string; ok: boolean }) => { if (!res) setRes({ ok: o.ok, answer: o.label, at: Date.now() }); };
   const submit = () => {
     if (res || !typed.trim() || ex.kind !== "word-type") return;
@@ -131,24 +141,19 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
     else if (res.ok && k === "3") go(4);
   });
 
-  const why = useMemo((): { e?: Explanation; text?: string } | null => {
+  const why = useMemo((): { e?: Explanation | null; text?: string } | null => {
     if (!res || res.ok) return null;
-    if (ex.kind === "word-read" || ex.kind === "word-type") {
-      const e = explainReading(res.answer, word, data);
-      return e ? { e } : null;
-    }
+    if (ex.kind === "word-read" || ex.kind === "word-type") return { e: explainReading(res.answer, word, data) };
     if (ex.kind === "word-spell") {
       const a = [...res.answer], b = [...word.w];
       const i = a.findIndex((c, j) => c !== b[j]);
-      const e = i >= 0 ? explainKanjiChoice(a[i]!, b[i]!, data) : null;
-      return e ? { e } : { text: t.vocab.spelled(word.w, word.r) };
+      return { e: i >= 0 ? explainKanjiChoice(a[i]!, b[i]!, data) : null, text: t.vocab.spelled(word.w, word.r) };
     }
     return { text: t.vocab.means(word.w, word.g) };
   }, [res, ex, word]);
 
-  const label = { "word-meaning": t.vocab.meaningLabel, "word-read": t.vocab.readLabel, "word-type": t.vocab.typeLabel, "word-spell": t.vocab.spellLabel }[ex.kind];
-  const q = { "word-meaning": t.vocab.meaningQ, "word-read": t.vocab.readQ, "word-type": t.vocab.typeQ, "word-spell": t.vocab.spellQ }[ex.kind];
-  const explained = why?.e ? t.explain(why.e) : null;
+  const label = { "word-meaning": t.vocab.meaningLabel, "word-read": t.vocab.readLabel, "word-type": t.vocab.typeLabel, "word-spell": t.vocab.spellLabel, "word-listen": t.audio.listenLabel }[ex.kind];
+  const q = { "word-meaning": t.vocab.meaningQ, "word-read": t.vocab.readQ, "word-type": t.vocab.typeQ, "word-spell": t.vocab.spellQ, "word-listen": t.audio.listenQ }[ex.kind];
 
   return (
     <Screen>
@@ -160,7 +165,12 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
 
       <Card navy style={{ alignItems: "center", gap: 10, paddingVertical: 28 }}>
         <T size={15} color={C.onNavyMuted}>{q}</T>
-        {ex.kind === "word-spell" ? (
+        {ex.kind === "word-listen" ? (
+          <Pressable accessibilityRole="button" accessibilityLabel={t.audio.again} onPress={() => say(word.r)}
+            style={({ pressed }) => ({ width: 120, height: 120, borderRadius: 60, backgroundColor: C.accent, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.8 : 1 })}>
+            <T v="black" size={44}>▶</T>
+          </Pressable>
+        ) : ex.kind === "word-spell" ? (
           <>
             <J size={40} color={C.highlight}>{word.r}</J>
             <T size={18} color={C.onNavy} style={{ textAlign: "center" }}>{word.g}</T>
@@ -183,7 +193,7 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
                 <View style={{ width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: isRight ? C.electric : isWrong ? C.wrong : C.outline, alignItems: "center", justifyContent: "center" }}>
                   <T size={15} color={isRight ? C.highlight : isWrong ? C.wrong : C.muted}>{isRight ? "✓" : isWrong ? "✗" : i + 1}</T>
                 </View>
-                {ex.kind === "word-meaning" ? <T size={17} style={{ flex: 1 }}>{o.label}</T> : <J size={ex.kind === "word-spell" ? 32 : 26}>{o.label}</J>}
+                {ex.kind === "word-meaning" ? <T size={17} style={{ flex: 1 }}>{o.label}</T> : <J size={ex.kind === "word-spell" || ex.kind === "word-listen" ? 32 : 26}>{o.label}</J>}
               </Pressable>
             );
           })}
@@ -202,18 +212,10 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
         <>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 12, flexWrap: "wrap" }} accessibilityLiveRegion="polite">
             <T v="black" size={34} color={res.ok ? C.highlight : C.wrong}>{res.ok ? right : t.session.wrong}</T>
-            {res.ok ? <T size={17} color="#D7DAE2">{t.session.rightSuffix}</T> : <T size={17} color="#D7DAE2">{t.session.correctIs} <J size={22}>{ex.kind === "word-spell" ? word.w : ex.kind === "word-meaning" ? word.w : word.r}</J></T>}
+            {res.ok ? <T size={17} color="#D7DAE2">{t.session.rightSuffix}</T> : <T size={17} color="#D7DAE2">{t.session.correctIs} <J size={22}>{ex.kind === "word-read" || ex.kind === "word-type" ? word.r : word.w}</J></T>}
           </View>
           {res.alt ? <T size={15} color={C.muted}>{t.session.alsoRight(word.r)}</T> : null}
-          {why ? (
-            <Card navy style={{ gap: 8 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <T v="bold" size={14} color={C.onNavyMuted} style={{ letterSpacing: 0.5 }}>{t.why.toUpperCase()}</T>
-                {explained ? <T size={13} color={C.onNavyMuted}>{explained.tag}</T> : null}
-              </View>
-              <Mixed text={explained?.text ?? why.text ?? ""} size={17} style={{ lineHeight: 26 }} />
-            </Card>
-          ) : null}
+          {why ? <Explain e={why.e} text={why.text} word={word} /> : null}
           <WordCard w={word.w} />
           {res.ok ? (
             <View style={{ flexDirection: "row", gap: 8 }}>

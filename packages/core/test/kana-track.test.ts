@@ -55,6 +55,19 @@ describe("judgeKana", () => {
   });
 });
 
+describe("kana listening", () => {
+  it("is only offered with a Japanese voice, and its options are kana", () => {
+    const a = kanaItem("あ")!;
+    const kinds = (audio: boolean) => new Set(Array.from({ length: 300 }, (_, s) => makeKanaExercise(a, undefined, seeded(s), { audio }).kind));
+    expect(kinds(false).has("kana-listen")).toBe(false);
+    expect(kinds(true).has("kana-listen")).toBe(true);
+    for (let s = 0; s < 100; s++) {
+      const ex = makeKanaExercise(a, undefined, seeded(s), { audio: true });
+      if (ex.kind === "kana-listen") expect(ex.options.every((o) => kanaItem(o.label))).toBe(true);
+    }
+  });
+});
+
 describe("areConfusable", () => {
   it("knows the real pairs and nothing else", () => {
     expect(areConfusable("シ", "ツ")).toBe(true);

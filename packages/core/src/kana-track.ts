@@ -79,12 +79,14 @@ export const areConfusable = (a: string, b: string): boolean => confusablesOf(a)
 
 // ---------- exercises ----------
 
-export type KanaKind = "kana-read" | "kana-pick" | "kana-type";
+export type KanaKind = "kana-read" | "kana-pick" | "kana-type" | "kana-listen";
 
 export type KanaExercise =
   | { kind: "kana-read"; item: KanaItem; options: { label: string; ok: boolean }[] }
   | { kind: "kana-pick"; item: KanaItem; options: { label: string; ok: boolean }[] }
-  | { kind: "kana-type"; item: KanaItem };
+  | { kind: "kana-type"; item: KanaItem }
+  /** Hear it, pick the kana. Only offered when a Japanese voice is available. */
+  | { kind: "kana-listen"; item: KanaItem; options: { label: string; ok: boolean }[] };
 
 const sameRomaji = (a: KanaItem, b: KanaItem) =>
   a.r === b.r || (a.alt ?? []).includes(b.r) || (b.alt ?? []).includes(a.r);
@@ -102,23 +104,24 @@ function distractors(item: KanaItem, rng: Rng, similar: boolean): KanaItem[] {
 }
 
 const WEIGHTS: Record<0 | 1 | 2, Record<KanaKind, number>> = {
-  0: { "kana-read": 3, "kana-pick": 2, "kana-type": 0 },
-  1: { "kana-read": 2, "kana-pick": 2, "kana-type": 1 },
-  2: { "kana-read": 2, "kana-pick": 1, "kana-type": 3 },
+  0: { "kana-read": 3, "kana-pick": 2, "kana-type": 0, "kana-listen": 2 },
+  1: { "kana-read": 2, "kana-pick": 2, "kana-type": 1, "kana-listen": 2 },
+  2: { "kana-read": 2, "kana-pick": 1, "kana-type": 3, "kana-listen": 2 },
 };
 
-export function makeKanaExercise(item: KanaItem, card: CardState | undefined, rng: Rng): KanaExercise {
+export function makeKanaExercise(item: KanaItem, card: CardState | undefined, rng: Rng, opts: { audio?: boolean } = {}): KanaExercise {
   const m = maturity(card);
   // Calibrated kana get checked the hardest way first, like calibrated kanji.
-  const w = card?.needsTypedCheck ? { "kana-read": 0, "kana-pick": 0, "kana-type": 1 } : WEIGHTS[m];
-  let x = rng() * (w["kana-read"] + w["kana-pick"] + w["kana-type"]);
+  const base = card?.needsTypedCheck ? { "kana-read": 0, "kana-pick": 0, "kana-type": 1, "kana-listen": 0 } : WEIGHTS[m];
+  const w = { ...base, "kana-listen": opts.audio ? base["kana-listen"] : 0 };
+  let x = rng() * (Object.values(w) as number[]).reduce((s, v) => s + v, 0);
   const kind = (Object.keys(w) as KanaKind[]).find((k) => (x -= w[k]) < 0) ?? "kana-read";
   if (kind === "kana-type") return { kind, item };
   const wrong = distractors(item, rng, m > 0);
   if (kind === "kana-read") {
     return { kind, item, options: shuffle(rng, [{ label: item.r, ok: true }, ...wrong.map((o) => ({ label: o.r, ok: false }))]) };
   }
-  return { kind, item, options: shuffle(rng, [{ label: item.k, ok: true }, ...wrong.map((o) => ({ label: o.k, ok: false }))]) };
+  return { kind, item, options: shuffle(rng, [{ label: item.k, ok: true }, ...wrong.map((o) => ({ label: o.k, ok: false }))]) } as KanaExercise;
 }
 
 /** A typed answer: romaji (Hepburn, Kunrei, or the listed alternatives) or the kana itself in either script. */

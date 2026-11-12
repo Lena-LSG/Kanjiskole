@@ -94,7 +94,24 @@ export const da = {
     type: { label: "Skriv læsningen", q: "Skriv læsningen (romaji eller kana)" },
   },
   why: "Hvorfor?",
-  explain(e: Explanation): { tag: string; text: string } {
+  howRead: "Sådan læses det",
+  audio: {
+    play: "Afspil udtale",
+    listenQ: "Lyt: hvad hørte du?",
+    listenLabel: "Lyt",
+    again: "Hør igen",
+    setting: "Læs svaret op",
+    on: "Til",
+    off: "Fra",
+    noVoice: "Ingen japansk stemme fundet. Installér en under Android-indstillinger → Tekst-til-tale, så kommer lyden.",
+  },
+  part: {
+    rendaku: (k: string, base: string, r: string) => `${k} er ${base}, men stemmes til ${r} inde i ordet (rendaku).`,
+    sokuon: (k: string, base: string, r: string) => `${k} er ${base}, men forkortes til ${r} foran næste lyd (lille っ).`,
+    whole: (k: string, r: string) => `${k} læses ${r} som ét hele, ikke kanji for kanji.`,
+    irregular: (k: string, r: string) => `${k} læses ${r} her: en særlig læsning, der hører til ordet.`,
+  },
+  explain(e: Explanation, m: (k: string) => string = () => ""): { tag: string; text: string } {
     switch (e.code) {
       case "rendaku":
         return e.missed
@@ -119,13 +136,15 @@ export const da = {
         };
       case "rare-reading":
         return { tag: "Sjælden læsning", text: "Den læsning findes, men ikke som svaret på dette ord. Tag den almindelige." };
-      case "lookalike":
-        return {
-          tag: "Forveksling",
-          text: e.shared.length
-            ? `${e.chosen} og ${e.target} deler ${e.shared.join(" + ")}. Se på det, der er forskelligt.`
-            : `${e.chosen} og ${e.target} ligner hinanden. Det er pointen. Se igen.`,
-        };
+      case "lookalike": {
+        const both = `${e.chosen} (${m(e.chosen)}) og ${e.target} (${m(e.target)})`;
+        const diff = e.chosenOnly.length || e.targetOnly.length
+          ? ` Forskellen: ${e.target} har ${e.targetOnly.join(" + ") || "ingen ekstra dele"}, ${e.chosen} har ${e.chosenOnly.join(" + ") || "ingen ekstra dele"}.`
+          : " Delene er de samme, så se på stregernes længde og placering.";
+        return { tag: "Forveksling", text: `${both} ligner hinanden${e.shared.length ? `: begge har ${e.shared.join(" + ")}` : ""}.${diff}` };
+      }
+      case "other-kanji":
+        return { tag: "Anden kanji", text: `Du valgte ${e.chosen}, som betyder "${m(e.chosen)}". ${e.target} betyder "${m(e.target)}".` };
     }
   },
   intervals(days: number) {

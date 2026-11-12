@@ -95,7 +95,24 @@ export const en: Strings = {
     type: { label: "Type the reading", q: "Type the reading (romaji or kana)" },
   },
   why: "Why?",
-  explain(e: Explanation): { tag: string; text: string } {
+  howRead: "How it's read",
+  audio: {
+    play: "Play pronunciation",
+    listenQ: "Listen: what did you hear?",
+    listenLabel: "Listen",
+    again: "Hear again",
+    setting: "Read the answer aloud",
+    on: "On",
+    off: "Off",
+    noVoice: "No Japanese voice found. Install one under Android settings → Text-to-speech and audio will appear.",
+  },
+  part: {
+    rendaku: (k: string, base: string, r: string) => `${k} is ${base}, but voices to ${r} inside the word (rendaku).`,
+    sokuon: (k: string, base: string, r: string) => `${k} is ${base}, but shortens to ${r} before the next sound (small っ).`,
+    whole: (k: string, r: string) => `${k} is read ${r} as a whole, not kanji by kanji.`,
+    irregular: (k: string, r: string) => `${k} is read ${r} here: a special reading that belongs to the word.`,
+  },
+  explain(e: Explanation, m: (k: string) => string = () => ""): { tag: string; text: string } {
     switch (e.code) {
       case "rendaku":
         return e.missed
@@ -120,13 +137,15 @@ export const en: Strings = {
         };
       case "rare-reading":
         return { tag: "Rare reading", text: "That reading exists, but not as the answer for this word. Go with the usual one." };
-      case "lookalike":
-        return {
-          tag: "Mix-up",
-          text: e.shared.length
-            ? `${e.chosen} and ${e.target} share ${e.shared.join(" + ")}. Look at what's different.`
-            : `${e.chosen} and ${e.target} look alike. That's the point. Look again.`,
-        };
+      case "lookalike": {
+        const both = `${e.chosen} (${m(e.chosen)}) and ${e.target} (${m(e.target)})`;
+        const diff = e.chosenOnly.length || e.targetOnly.length
+          ? ` The difference: ${e.target} has ${e.targetOnly.join(" + ") || "no extra parts"}, ${e.chosen} has ${e.chosenOnly.join(" + ") || "no extra parts"}.`
+          : " The parts are the same, so look at the length and position of the strokes.";
+        return { tag: "Mix-up", text: `${both} look alike${e.shared.length ? `: both have ${e.shared.join(" + ")}` : ""}.${diff}` };
+      }
+      case "other-kanji":
+        return { tag: "Other kanji", text: `You picked ${e.chosen}, which means "${m(e.chosen)}". ${e.target} means "${m(e.target)}".` };
     }
   },
   intervals(days: number) {

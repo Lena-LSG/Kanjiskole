@@ -16,7 +16,9 @@ export type Explanation =
   /** A real reading of this spelling, just not the one asked for (names, rare readings). */
   | { code: "rare-reading" }
   /** Picked a kanji that looks like the right one. */
-  | { code: "lookalike"; chosen: string; target: string; shared: string[] };
+  | { code: "lookalike"; chosen: string; target: string; shared: string[]; chosenOnly: string[]; targetOnly: string[] }
+  /** Picked another kanji that doesn't particularly resemble the right one (new cards get plain distractors). */
+  | { code: "other-kanji"; chosen: string; target: string };
 
 const VOICED = "がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ";
 const PLAIN = "かきくけこさしすせそたちつてとはひふへほはひふへほ";
@@ -97,5 +99,10 @@ export function explainReading(answer: string, word: Word, data: KanjiData): Exp
 export function explainKanjiChoice(chosen: string, target: string, data: KanjiData): Explanation | null {
   const a = data.get(chosen), b = data.get(target);
   if (!a || !b || chosen === target) return null;
-  return { code: "lookalike", chosen, target, shared: a.c.filter((c) => b.c.includes(c)) };
+  const shared = a.c.filter((c) => b.c.includes(c));
+  // Only call it a look-alike when it is one: visually close, or built from the same parts.
+  if (!b.sim.slice(0, 12).includes(chosen) && !a.sim.slice(0, 12).includes(target) && !shared.length) {
+    return { code: "other-kanji", chosen, target };
+  }
+  return { code: "lookalike", chosen, target, shared, chosenOnly: a.c.filter((c) => !b.c.includes(c)), targetOnly: b.c.filter((c) => !a.c.includes(c)) };
 }

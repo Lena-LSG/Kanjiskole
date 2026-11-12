@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { t } from "@/i18n";
 import { data } from "@/state/AppState";
 import { C } from "@/theme";
+import { SpeakButton } from "./SpeakButton";
 import { Card, J, KanjiSquare, T } from "./ui";
 
 export function Kun({ s }: { s: string }) {
@@ -41,6 +42,7 @@ export function AnswerPanel({ kanji, focus, max = 4 }: { kanji: Kanji; focus?: W
             <Marked word={w.w} k={kanji.k} size={22} color={C.ink} />
             <J size={16} color={C.highlight}>{w.r}</J>
             <T size={14} color={C.muted} style={{ flex: 1 }} numberOfLines={2}>{w.g}</T>
+            <SpeakButton text={w.r} size={32} />
           </View>
         ))}
       </View>

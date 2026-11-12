@@ -5,15 +5,17 @@ import {
   type Item, type Option, type Verdict, type Word,
 } from "@kanjiskole/core";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { AnswerPanel, Marked } from "@/components/AnswerPanel";
 import { Screen } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
-import { Card, Ghost, Group, J, KanjiSquare, LinkButton, Mixed, Primary, T } from "@/components/ui";
+import { Explain } from "@/components/Explain";
+import { Card, Ghost, Group, J, KanjiSquare, LinkButton, Primary, T } from "@/components/ui";
 import { t } from "@/i18n";
 import { useKnown } from "@/lib/known";
 import { useKeys } from "@/lib/useKeys";
+import { say } from "@/lib/speech";
 import { data, useApp } from "@/state/AppState";
 import { C, R } from "@/theme";
 
@@ -163,6 +165,8 @@ function Quiz({ bar, status, kanjiK, card, known, onSettle }: { bar: React.React
   const right = useMemo(() => t.session.right[Math.floor(Math.random() * t.session.right.length)]!, []);
 
   const answerText = res?.verdict?.got ?? res?.chosen?.label;
+  const { meta } = useApp();
+  useEffect(() => { if (res && word && meta.settings.autoSpeak) say(word.r); }, [res !== null]); // eslint-disable-line react-hooks/exhaustive-deps
   const go = (grade: Grade, ok = res?.ok ?? false) =>
     onSettle({ grade, ex: ex.kind, ok, word: word?.w, answer: answerText, ms: (res?.at ?? Date.now()) - start });
 
@@ -253,7 +257,7 @@ function Quiz({ bar, status, kanjiK, card, known, onSettle }: { bar: React.React
             {!res.ok && word ? <T size={17} color="#D7DAE2">{t.session.correctIs} <J size={22}>{word.r}</J></T> : null}
           </View>
           {res.verdict?.how === "alternative" && word ? <T size={15} color={C.muted}>{t.session.alsoRight(word.r)}</T> : null}
-          {why ? <Why e={why} /> : null}
+          {!res.ok ? <Explain e={why} word={ex.kind === "read" || ex.kind === "type" || ex.kind === "fill" ? word : undefined} /> : null}
           <AnswerPanel kanji={kanji} focus={word} />
           {res.ok ? (
             <View style={{ flexDirection: "row", gap: 8 }}>
@@ -302,19 +306,6 @@ function Prompt({ ex }: { ex: Exercise }) {
           {ex.word.g ? <T size={17} color={C.onNavy} style={{ textAlign: "center" }}>{ex.word.g}</T> : null}
         </>
       )}
-    </Card>
-  );
-}
-
-function Why({ e }: { e: Explanation }) {
-  const x = t.explain(e);
-  return (
-    <Card navy style={{ gap: 8 }}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <T v="bold" size={14} color={C.onNavyMuted} style={{ letterSpacing: 0.5 }}>{t.why.toUpperCase()}</T>
-        <T size={13} color={C.onNavyMuted}>{x.tag}</T>
-      </View>
-      <Mixed text={x.text} size={17} style={{ lineHeight: 26 }} />
     </Card>
   );
 }

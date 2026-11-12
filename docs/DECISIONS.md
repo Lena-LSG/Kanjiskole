@@ -2,6 +2,18 @@
 
 Changes to the handover (`HANDOVER.md`) and why. Newest first.
 
+## 2026-11-12: audio and better Hvorfor?
+
+- **Audio** is the device's own text-to-speech (`expo-speech`: Android TTS, the browser's Web Speech API), offline
+  where a Japanese voice is installed; the app sends nothing anywhere. Readings are spoken from kana, not kanji, so
+  TTS can't guess a reading wrong. Without a Japanese voice all audio UI disappears and Settings says how to install
+  one. Answers are read aloud on reveal (Settings → "Læs svaret op", on by default), every word has a speaker
+  button, and the kana and word tracks get a "listen and pick" exercise that never offers homophones.
+- **Hvorfor? on every wrong answer**, not only when a slip pattern matches: readings get a per-kanji breakdown
+  (`readingBreakdown` in core: plain, rendaku, っ, irregular, whole-word) with a line for anything special; kanji
+  choices say what both kanji mean, and only call it a look-alike when it is one (visually close or sharing parts),
+  with the parts that tell them apart.
+
 ## 2026-11-12: vocabulary cards
 
 - Words are cards of their own, keyed `w:<spelling>` so a one-kanji word never collides with its kanji card.

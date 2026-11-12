@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { TextInput, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { Kun } from "@/components/AnswerPanel";
+import { SpeakButton } from "@/components/SpeakButton";
 import { Screen } from "@/components/Screen";
 import { Card, Circle, Ghost, Group, J, KanjiSquare, LinkButton, T } from "@/components/ui";
 import { t } from "@/i18n";
@@ -146,6 +147,7 @@ export default function KanjiDetail() {
                 {w.g ? <T size={14} color={C.muted}>{w.g}</T> : null}
               </View>
               <T size={13} color={!h ? C.faint : h.lastWrong ? C.wrong : C.highlight}>{note}</T>
+              <SpeakButton text={w.r} size={32} />
             </View>
           );
         })}

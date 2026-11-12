@@ -44,6 +44,17 @@ describe("word exercises", () => {
     }
   });
 
+  it("listening is only offered with a voice and never offers a homophone", () => {
+    const kinds = (audio: boolean) => new Set(Array.from({ length: 200 }, (_, s) => makeWordExercise(d.word("時間")!, undefined, d, seeded(s), { audio }).kind));
+    expect(kinds(false).has("word-listen")).toBe(false);
+    expect(kinds(true).has("word-listen")).toBe(true);
+    for (const w of words.slice(0, 150)) {
+      const ex = makeWordExercise(w, undefined, d, seeded(w.w.length), { audio: true });
+      if (ex.kind !== "word-listen") continue;
+      for (const o of ex.options) if (!o.ok) expect(validReadings(d.word(o.label)!).has(w.r), `${w.w}: ${o.label}`).toBe(false);
+    }
+  });
+
   it("new words are never typed or spelled", () => {
     for (let s = 0; s < 200; s++) expect(["word-type", "word-spell"]).not.toContain(makeWordExercise(d.word("時間")!, undefined, d, seeded(s)).kind);
   });

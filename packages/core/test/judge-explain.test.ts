@@ -34,4 +34,5 @@ describe("explainReading", () => {
     expect(explainReading("なまかつ", w("生活"), d)).toMatchObject({ code: "other-reading", kanji: "生", used: "なま", correct: "せい", usedIsOn: false }));
   it("unknown slips stay unexplained", () => expect(explainReading("ばなな", w("時間"), d)).toBeNull());
   it("look-alike kanji", () => expect(explainKanjiChoice("未", "末", d)).toMatchObject({ code: "lookalike", chosen: "未", target: "末" }));
+  it("doesn't call unrelated kanji look-alikes", () => expect(explainKanjiChoice("国", "鬱", d)).toMatchObject({ code: "other-kanji" }));
 });

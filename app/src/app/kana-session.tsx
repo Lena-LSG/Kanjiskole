@@ -4,13 +4,15 @@ import {
   preview, toKana, type CardState, type Grade, type Item, type KanaExercise, type Script,
 } from "@kanjiskole/core";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Screen } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
 import { Card, Ghost, Group, J, LinkButton, Primary, T } from "@/components/ui";
 import { t } from "@/i18n";
 import { useKeys } from "@/lib/useKeys";
+import { hasVoice, say, useJapaneseVoice } from "@/lib/speech";
+import { SpeakButton } from "@/components/SpeakButton";
 import { useApp } from "@/state/AppState";
 import { C, R } from "@/theme";
 
@@ -68,6 +70,9 @@ export default function KanaSession() {
 }
 
 function Intro({ bar, k, r, onDone }: { bar: React.ReactNode; k: string; r: string; onDone: () => void }) {
+  const { meta } = useApp();
+  const voice = useJapaneseVoice();
+  useEffect(() => { if (voice && meta.settings.autoSpeak) say(k); }, [voice]); // eslint-disable-line react-hooks/exhaustive-deps
   useKeys((key, e) => { if (key === "Enter" || key === " ") { e.preventDefault(); onDone(); } else if (key === "Escape") leave(); });
   return (
     <Screen>
@@ -76,6 +81,7 @@ function Intro({ bar, k, r, onDone }: { bar: React.ReactNode; k: string; r: stri
         <T size={15} color={C.onNavyMuted}>{t.kana.newKana}</T>
         <J size={140} style={{ lineHeight: 170 }}>{k}</J>
         <T v="black" size={36}>{r}</T>
+        <SpeakButton text={k} onNavy />
       </Card>
       <Primary label={t.session.gotIt} onPress={onDone} />
     </Screen>
@@ -87,7 +93,9 @@ function Quiz({ bar, fresh, itemK, card, onSettle }: {
   onSettle: (grade: Grade, ex: KanaExercise, ok: boolean, answer: string | undefined, ms: number) => void;
 }) {
   const item = kanaItem(itemK)!;
-  const ex = useMemo(() => makeKanaExercise(item, card, Math.random), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const { meta } = useApp();
+  const ex = useMemo(() => makeKanaExercise(item, card, Math.random, { audio: hasVoice() }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (ex.kind === "kana-listen") say(item.k); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const start = useRef(Date.now()).current;
   const [res, setRes] = useState<{ ok: boolean; answer: string; at: number } | null>(null);
   const [typed, setTyped] = useState("");
@@ -95,6 +103,7 @@ function Quiz({ bar, fresh, itemK, card, onSettle }: {
   const right = useMemo(() => t.session.right[Math.floor(Math.random() * t.session.right.length)]!, []);
 
   const go = (g: Grade, ok = res?.ok ?? false) => onSettle(g, ex, ok, res?.answer, (res?.at ?? Date.now()) - start);
+  useEffect(() => { if (res && meta.settings.autoSpeak && ex.kind !== "kana-listen") say(item.k); }, [res !== null]); // eslint-disable-line react-hooks/exhaustive-deps
   const choose = (o: { label: string; ok: boolean }) => { if (!res) setRes({ ok: o.ok, answer: o.label, at: Date.now() }); };
   const submit = () => {
     if (res || !typed.trim() || ex.kind !== "kana-type") return;
@@ -112,9 +121,9 @@ function Quiz({ bar, fresh, itemK, card, onSettle }: {
 
   // A wrong pick explains itself: what the picked one is, and what this one is.
   const picked = res && !res.ok && "options" in ex
-    ? ex.kind === "kana-pick" ? kanaItem(res.answer) : KANA.find((x) => x.script === item.script && x.r === res.answer)
+    ? ex.kind === "kana-pick" || ex.kind === "kana-listen" ? kanaItem(res.answer) : KANA.find((x) => x.script === item.script && x.r === res.answer)
     : undefined;
-  const label = ex.kind === "kana-read" ? t.kana.readLabel : ex.kind === "kana-pick" ? t.kana.pickLabel : t.kana.typeLabel;
+  const label = ex.kind === "kana-read" ? t.kana.readLabel : ex.kind === "kana-pick" ? t.kana.pickLabel : ex.kind === "kana-listen" ? t.audio.listenLabel : t.kana.typeLabel;
 
   return (
     <Screen>
@@ -125,8 +134,13 @@ function Quiz({ bar, fresh, itemK, card, onSettle }: {
       </View>
 
       <Card navy style={{ alignItems: "center", gap: 10, paddingVertical: 30 }}>
-        <T size={15} color={C.onNavyMuted}>{ex.kind === "kana-read" ? t.kana.readQ : ex.kind === "kana-pick" ? t.kana.pickQ : t.kana.typeQ}</T>
-        {ex.kind === "kana-pick" ? <T v="black" size={64}>{item.r}</T> : <J size={120} style={{ lineHeight: 150 }}>{item.k}</J>}
+        <T size={15} color={C.onNavyMuted}>{ex.kind === "kana-read" ? t.kana.readQ : ex.kind === "kana-pick" ? t.kana.pickQ : ex.kind === "kana-listen" ? t.audio.listenQ : t.kana.typeQ}</T>
+        {ex.kind === "kana-listen" ? (
+          <Pressable accessibilityRole="button" accessibilityLabel={t.audio.again} onPress={() => say(item.k)}
+            style={({ pressed }) => ({ width: 120, height: 120, borderRadius: 60, backgroundColor: C.accent, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.8 : 1 })}>
+            <T v="black" size={44}>▶</T>
+          </Pressable>
+        ) : ex.kind === "kana-pick" ? <T v="black" size={64}>{item.r}</T> : <J size={120} style={{ lineHeight: 150 }}>{item.k}</J>}
       </Card>
 
       {"options" in ex ? (
@@ -139,7 +153,7 @@ function Quiz({ bar, fresh, itemK, card, onSettle }: {
                 <View style={{ width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: isRight ? C.electric : isWrong ? C.wrong : C.outline, alignItems: "center", justifyContent: "center" }}>
                   <T size={15} color={isRight ? C.highlight : isWrong ? C.wrong : C.muted}>{isRight ? "✓" : isWrong ? "✗" : i + 1}</T>
                 </View>
-                {ex.kind === "kana-pick" ? <J size={36}>{o.label}</J> : <T v="bold" size={22}>{o.label}</T>}
+                {ex.kind === "kana-pick" || ex.kind === "kana-listen" ? <J size={36}>{o.label}</J> : <T v="bold" size={22}>{o.label}</T>}
               </Pressable>
             );
           })}

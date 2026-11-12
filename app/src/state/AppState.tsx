@@ -16,8 +16,10 @@ export interface Settings {
   reviewStyle: ReviewStyle;
   rolloverHour: number;
   uiLang: Lang;
+  /** Read the answer aloud when it is revealed (when a Japanese voice exists). */
+  autoSpeak: boolean;
 }
-export const DEFAULT_SETTINGS: Settings = { newPerDay: 10, reviewStyle: "quiz", rolloverHour: DEFAULT_ROLLOVER, uiLang: "da" };
+export const DEFAULT_SETTINGS: Settings = { newPerDay: 10, reviewStyle: "quiz", rolloverHour: DEFAULT_ROLLOVER, uiLang: "da", autoSpeak: true };
 
 export interface BlitzRun { at: number; score: number; misses: string[] }
 

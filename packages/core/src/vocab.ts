@@ -33,6 +33,30 @@ export function vocabOrder(data: KanjiData): Word[] {
   return o;
 }
 
+const INDEX = new WeakMap<KanjiData, { pos: Map<Word, number>; byKanji: Map<string, Word[]> }>();
+function index(data: KanjiData) {
+  let ix = INDEX.get(data);
+  if (!ix) {
+    const order = vocabOrder(data);
+    const byKanji = new Map<string, Word[]>();
+    for (const w of order) for (const c of new Set(kanjiIn(w))) (byKanji.get(c) ?? byKanji.set(c, []).get(c)!).push(w);
+    ix = { pos: new Map(order.map((w, i) => [w, i])), byKanji };
+    INDEX.set(data, ix);
+  }
+  return ix;
+}
+
+/** Plausible companions for a word: words sharing a kanji with it, and its neighbours in the teaching order. */
+function nearby(word: Word, data: KanjiData): Word[] {
+  const order = vocabOrder(data);
+  const { pos, byKanji } = index(data);
+  const at = pos.get(word) ?? 0;
+  const out = new Set(order.slice(Math.max(0, at - 60), at + 61));
+  for (const c of kanjiIn(word)) for (const w of byKanji.get(c) ?? []) out.add(w);
+  out.delete(word);
+  return [...out];
+}
+
 /** Words whose kanji she all knows. */
 export const unlockedWords = (data: KanjiData, known: ReadonlySet<string>): Word[] =>
   vocabOrder(data).filter((w) => kanjiIn(w).every((c) => known.has(c)));
@@ -61,23 +85,22 @@ export function vocabProgress(cards: ReadonlyMap<string, CardState>, data: Kanji
 
 // ---------- exercises ----------
 
-export type WordKind = "word-meaning" | "word-read" | "word-type" | "word-spell";
+export type WordKind = "word-meaning" | "word-read" | "word-type" | "word-spell" | "word-listen";
 
 export type WordExercise =
   | { kind: "word-meaning"; word: Word; options: { label: string; ok: boolean }[] }
   | { kind: "word-read"; word: Word; options: { label: string; ok: boolean }[] }
   | { kind: "word-type"; word: Word }
   /** Shown the reading and gloss, pick the right spelling among look-alike spellings. */
-  | { kind: "word-spell"; word: Word; options: { label: string; ok: boolean }[] };
+  | { kind: "word-spell"; word: Word; options: { label: string; ok: boolean }[] }
+  /** Hear the reading, pick the word. Only offered when a Japanese voice is available. */
+  | { kind: "word-listen"; word: Word; options: { label: string; ok: boolean }[] };
 
 const firstGloss = (g: string) => g.split(",")[0]!.trim().toLowerCase();
 
 /** Glosses of nearby words or words sharing a kanji: plausible, never the same meaning. */
 function meaningOptions(word: Word, data: KanjiData, rng: Rng): { label: string; ok: boolean }[] | null {
-  const order = vocabOrder(data);
-  const at = order.indexOf(word);
-  const ks = new Set(kanjiIn(word));
-  const near = order.filter((w, i) => w !== word && (kanjiIn(w).some((c) => ks.has(c)) || Math.abs(i - at) <= 60));
+  const near = nearby(word, data);
   const seen = new Set([firstGloss(word.g)]);
   const wrong: string[] = [];
   for (const w of shuffle(rng, near)) {
@@ -105,22 +128,33 @@ function spellOptions(word: Word, data: KanjiData, rng: Rng): { label: string; o
   return shuffle(rng, [{ label: word.w, ok: true }, ...wrong.map((label) => ({ label, ok: false }))]);
 }
 
+/** Nearby words to hear against, never one that sounds the same (you can't tell 機会 from 機械 by ear). */
+function listenOptions(word: Word, data: KanjiData, rng: Rng): { label: string; ok: boolean }[] | null {
+  const near = nearby(word, data).filter((w) => !validReadings(w).has(word.r) && !validReadings(word).has(w.r));
+  const wrong = shuffle(rng, near).slice(0, 3).map((w) => w.w);
+  if (wrong.length < 3) return null;
+  return shuffle(rng, [{ label: word.w, ok: true }, ...wrong.map((label) => ({ label, ok: false }))]);
+}
+
 const WEIGHTS: Record<0 | 1 | 2, Record<WordKind, number>> = {
-  0: { "word-meaning": 3, "word-read": 3, "word-spell": 0, "word-type": 0 },
-  1: { "word-meaning": 2, "word-read": 3, "word-spell": 2, "word-type": 1 },
-  2: { "word-meaning": 1, "word-read": 2, "word-spell": 2, "word-type": 3 },
+  0: { "word-meaning": 3, "word-read": 3, "word-spell": 0, "word-type": 0, "word-listen": 2 },
+  1: { "word-meaning": 2, "word-read": 3, "word-spell": 2, "word-type": 1, "word-listen": 2 },
+  2: { "word-meaning": 1, "word-read": 2, "word-spell": 2, "word-type": 3, "word-listen": 2 },
 };
 
-export function makeWordExercise(word: Word, card: CardState | undefined, data: KanjiData, rng: Rng): WordExercise {
-  const w = WEIGHTS[maturity(card)];
+export function makeWordExercise(word: Word, card: CardState | undefined, data: KanjiData, rng: Rng, opts: { audio?: boolean } = {}): WordExercise {
+  const w = { ...WEIGHTS[maturity(card)] };
+  if (!opts.audio) w["word-listen"] = 0;
   const meaning = meaningOptions(word, data, rng);
   const spell = w["word-spell"] ? spellOptions(word, data, rng) : null;
-  const avail = (Object.keys(w) as WordKind[]).filter((k) => w[k] > 0 && (k !== "word-meaning" || meaning) && (k !== "word-spell" || spell));
+  const listen = w["word-listen"] ? listenOptions(word, data, rng) : null;
+  const avail = (Object.keys(w) as WordKind[]).filter((k) => w[k] > 0 && (k !== "word-meaning" || meaning) && (k !== "word-spell" || spell) && (k !== "word-listen" || listen));
   let x = rng() * avail.reduce((s, k) => s + w[k], 0);
   const kind = avail.find((k) => (x -= w[k]) < 0) ?? "word-read";
   switch (kind) {
     case "word-meaning": return { kind, word, options: meaning! };
     case "word-spell": return { kind, word, options: spell! };
+    case "word-listen": return { kind, word, options: listen! };
     case "word-type": return { kind, word };
     case "word-read": return { kind, word, options: readingOptions(word, data, rng).map((r) => ({ label: r, ok: r === word.r })) };
   }
