@@ -114,6 +114,7 @@ export default function Home() {
           </View>
 
           <Group>
+            <Row icon="語" label={t.home.vocab} onPress={() => router.push("/words")} />
             <Row icon="か" label={t.home.kana} onPress={() => router.push("/kana")} />
             <Row icon="測" label={t.home.calibrate} onPress={() => router.push("/calibrate")} />
             <Row icon="弱" label={t.home.weakest} onPress={() => router.navigate("/stats")} />

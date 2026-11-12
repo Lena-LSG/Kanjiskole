@@ -3,8 +3,9 @@ import { isLeech, isStarted, scheduler, State, type CardState } from "./cards.ts
 import { DEFAULT_ROLLOVER, studyDay } from "./day.ts";
 import type { KanjiEvent, ReviewEvent } from "./events.ts";
 import { isKanaKey } from "./kana-track.ts";
+import { isWordKey } from "./vocab.ts";
 
-const isKanjiCard = (c: CardState) => !isKanaKey(c.k);
+const isKanjiCard = (c: CardState) => !isKanaKey(c.k) && !isWordKey(c.k);
 
 const reviews = (events: readonly KanjiEvent[]) =>
   events.filter((e): e is ReviewEvent => e.t === "review" && e.via !== "blitz");

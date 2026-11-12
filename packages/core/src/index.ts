@@ -15,3 +15,4 @@ export * from "./rng.ts";
 export * from "./session.ts";
 export * from "./stats.ts";
 export type * from "./types.ts";
+export * from "./vocab.ts";

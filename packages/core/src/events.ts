@@ -1,7 +1,7 @@
 // Progress is an append-only log of events. Card state is derived by replaying it (see cards.ts), so syncing
 // is a union of logs keyed by id, with nothing to merge and nothing to duplicate.
 
-export const EXERCISES = ["mean", "which", "fill", "read", "type", "flash", "kana-read", "kana-pick", "kana-type"] as const;
+export const EXERCISES = ["mean", "which", "fill", "read", "type", "flash", "kana-read", "kana-pick", "kana-type", "word-meaning", "word-read", "word-type", "word-spell"] as const;
 export type ExerciseKind = (typeof EXERCISES)[number];
 
 /** FSRS grades: 1 Again, 2 Hard, 3 Good, 4 Easy. */

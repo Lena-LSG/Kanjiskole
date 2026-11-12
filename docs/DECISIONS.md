@@ -2,6 +2,17 @@
 
 Changes to the handover (`HANDOVER.md`) and why. Newest first.
 
+## 2026-11-12: vocabulary cards
+
+- Words are cards of their own, keyed `w:<spelling>` so a one-kanji word never collides with its kanji card.
+- A word unlocks once every kanji in it is known; order: JLPT level, common words first, then the curriculum
+  position of its latest kanji, then length. Only glossed words of two or more characters (12,894).
+- Exercises: word → meaning, word → reading, typed reading, and spelling (reading + gloss → the right spelling among
+  look-alike spellings such as 持間 for 時間; never a real word read the same way). New words get meaning and
+  reading only; spelling and typing come as the card matures. Hvorfor? reuses the kanji explanations.
+- Kept apart like kana: kanji sessions, blitz and kanji stats ignore word cards; 10 new words a day of its own.
+- Whole-word readings (一人 ひとり, 大人 おとな) are fine here: the word card teaches the word itself, intro first.
+
 ## 2026-11-12: kana track
 
 - Hiragana and katakana are generated in `core/kana-track.ts` (46 basic, 25 dakuten, 33 yōon per script, plus 7

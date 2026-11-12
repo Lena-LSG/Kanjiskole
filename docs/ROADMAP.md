@@ -7,6 +7,7 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
 - M2 app shell, Android + web, offline; first EAS APK running on the S26 (2026-10-28)
 - English UI option
 - Expo SDK 58 (2026-11-12): closes the URL-parsing advisories
+- Vocabulary cards (2026-11-12): words unlock when their kanji are known (item 3)
 - Kana track (2026-11-12): hiragana and katakana with their own sessions, calibration and chart (item 6; words in
   kana and listening come with audio, item 7)
 - Curriculum (2026-11-12): JLPT order with parts first, prompts limited to words she can read, difficulty that
