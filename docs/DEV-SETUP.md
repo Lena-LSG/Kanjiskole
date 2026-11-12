@@ -23,6 +23,9 @@ npm ci
 npm test
 ```
 
+`.npmrc` sets `ignore-scripts=true`: no dependency gets to run code at install time (none needs to). If a future
+dependency genuinely needs a build step, run it explicitly rather than turning scripts back on globally.
+
 `npm ci` may warn that cached tarballs are corrupted and refresh them; that's npm healing its cache, and the
 lockfile hashes still verify. `npm audit` reports a high in zod under `@expo/cli`: accepted, see
 `scripts/audit-accepted.json`. Never `npm audit fix --force` (it downgrades Expo to SDK 51).

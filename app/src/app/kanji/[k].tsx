@@ -47,7 +47,8 @@ function StrokeOrder({ paths }: { paths: string[] }) {
 
 export default function KanjiDetail() {
   const { k: raw } = useLocalSearchParams<{ k: string }>();
-  const k = decodeURIComponent(raw ?? "");
+  // From a URL: expo-router has usually decoded it already, and a stray "%" must not throw.
+  const k = (() => { try { return decodeURIComponent(raw ?? ""); } catch { return raw ?? ""; } })();
   const kanji = data.get(k);
   const { cards, events, meta, setMeta, record } = useApp();
   const card = cards.get(k);

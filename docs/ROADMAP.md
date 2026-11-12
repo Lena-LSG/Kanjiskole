@@ -13,6 +13,10 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
 - Two decode-uri-component advisories (one high, a URL-parsing DoS) are only fixed by expo-router 58. Upgrade the
   whole SDK set from SDK 58's bundledNativeModules.json after the curriculum work; the acceptance expires 2026-12-15.
 
+## Security
+- Review of 2026-11-12: `docs/SECURITY-REVIEW.md`. Fixed S1–S7; Lena's settings (GitHub branch protection, push
+  protection, 2FA; Supabase sign-ups off and redirect allowlist) are listed there; M3 must meet its threat model.
+
 ## Next: M3 sync
 - Supabase project (EU), `SUPABASE_ACCESS_TOKEN` as an environment secret, `EXPO_PUBLIC_SUPABASE_URL` /
   `EXPO_PUBLIC_SUPABASE_ANON_KEY` as variables, network access to `*.supabase.co` and `api.supabase.com`.
