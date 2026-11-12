@@ -2,6 +2,22 @@
 
 Changes to the handover (`HANDOVER.md`) and why. Newest first.
 
+## 2026-11-12: a curriculum, not a list
+
+- **New kanji in JLPT order:** N5 → N4 → N3 → N2 → N1, then jōyō outside the lists. Within a level, frequency
+  order, but a kanji's parts that are kanji come first (言 before 語, 木 before 林), even one level early (言 and 口
+  are N4, 語 is N5); never more than one level. The order is the array order of `kanji.v1.json` (data 1.1.0);
+  `.i` stays the frequency rank. Test: no kanji appears while a level two or more steps easier is unfinished.
+- **Questions use words she can read:** besides the target, a prompt word may only contain kanji she has started.
+  With none readable, the card gets kanji-only exercises.
+- **Difficulty ramps with the card** (`core/curriculum.ts`): new cards get plain words only (every kanji read with
+  one of its own readings), meaning/recognition/reading, and plain curriculum neighbours as distractors. Young cards
+  add sound changes (rendaku, っ), fill-the-gap and some typing; established or calibrated cards get everything,
+  whole-word readings (二十歳 はたち), typed recall and the visual look-alikes.
+- **Data fix:** words with okurigana (会う, 読む, 食べる) had no furigana and no JLPT/common flags, because furifont
+  only keys runs of kanji, so the most basic verbs fell out of each kanji's word list. Furigana now comes from
+  matching the okurigana, flags from kotobako.
+
 ## 2026-10-28: M2 app shell
 
 - **Expo SDK 57** (React Native 0.86), not 58: 58 was a month old. Versions are exact pins taken from SDK 57's own

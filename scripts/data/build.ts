@@ -7,7 +7,7 @@ import { isKana, isKanji, toHira, toKata } from "../../packages/core/src/kana.ts
 import type { Dataset, Furigana, Kanji, Word } from "../../packages/core/src/types.ts";
 import { similarity } from "./similar.ts";
 
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 const root = new URL("../..", import.meta.url).pathname;
 const src = (p: string) => join(root, ".cache/sources", p);
 const readJson = (p: string) => JSON.parse(readFileSync(src(p), "utf8"));
@@ -27,7 +27,7 @@ type Furi = {
 };
 const furi: Furi = readJson("furifont/package/data/dictionary.json");
 
-type KotoVocab = { word: string; reading: string; meanings: string[] };
+type KotoVocab = { word: string; reading: string; meanings: string[]; jlpt: string | null };
 type KotoKanji = { char: string; strokes: string[] };
 const koto: { version: string; datasets: { vocab: KotoVocab[]; kanji: KotoKanji[] } } =
   readJson("kotobako/package/kotobako-static.json");
@@ -89,7 +89,10 @@ function readKey(word: string, key: string): { reading: string; f: Furigana[] } 
 }
 
 const glossOf = new Map<string, Map<string, string>>(); // word → reading → gloss
+const kotoJlpt = new Map<string, number>(); // word → JLPT level, for words furifont has no flags for
 for (const v of koto.datasets.vocab) {
+  const lvl = v.jlpt ? Number(v.jlpt.slice(1)) : 0;
+  if (lvl && !kotoJlpt.has(respell(v.word))) kotoJlpt.set(respell(v.word), lvl);
   const g = v.meanings.map((m) => m.replace(/\s*\(.*?\)\s*/g, " ").trim()).filter(Boolean).slice(0, 2).join(", ");
   if (!g) continue;
   const word = respell(v.word);
@@ -114,6 +117,37 @@ const OVERRIDES: Record<string, [string, string, string]> = {
 
 type Cand = Word & { score: number };
 const words = new Map<string, Cand>();
+
+/**
+ * Furigana for a spelling furifont has no entry for (it keys runs of kanji, so 読む and 会う are missing): match the
+ * kana around each kanji run against the reading. A multi-kanji run is split per kanji when furifont knows that run.
+ */
+function align(spelling: string, reading: string): Furigana[] | undefined {
+  const groups: { kanji: boolean; start: number; end: number; text: string }[] = [];
+  [...spelling].forEach((c, i) => {
+    const kanji = !isKana(c);
+    const last = groups[groups.length - 1];
+    if (last && last.kanji === kanji) { last.end = i + 1; last.text += c; }
+    else groups.push({ kanji, start: i, end: i + 1, text: c });
+  });
+  if (!groups.some((g) => g.kanji)) return undefined;
+  const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const m = toHira(reading).match(new RegExp(`^${groups.map((g) => (g.kanji ? "(.+?)" : esc(toHira(g.text)))).join("")}$`));
+  if (!m) return undefined;
+  const out: Furigana[] = [];
+  let gi = 1;
+  for (const g of groups) {
+    if (!g.kanji) continue;
+    const r = m[gi++]!;
+    if (g.end - g.start > 1) {
+      const runs = runsOf.get(g.text);
+      const hit = runs && Object.keys(runs).map((key) => readKey(g.text, key)).find((x) => x.reading === r);
+      if (hit) { for (const [a, b, rr] of hit.f) out.push([g.start + a, g.start + b, rr]); continue; }
+    }
+    out.push([g.start, g.end, r]);
+  }
+  return out;
+}
 
 /** Readings of a spelling from JMdict, split into accepted answers and readings that are merely possible. */
 function readingsOf(spelling: string) {
@@ -142,11 +176,13 @@ function addWord(spelling: string, primary: string | undefined, gloss: string, f
   const rs = [...new Set([r, ...accepted.map((e) => e.reading)])];
   const x = [...new Set(entries.map((e) => e.reading))].filter((y) => !rs.includes(y));
   const flags = entries.reduce((a, e) => a | e.flags, 0);
-  const jlpt = JLPT_BITS.find(([bit]) => flags & bit)?.[1];
+  // Words with kana in them have no furifont flags: kotobako's own JLPT level, and its list is JMdict's common words.
+  const jlpt = JLPT_BITS.find(([bit]) => flags & bit)?.[1] ?? kotoJlpt.get(spelling);
   const w: Cand = { w: spelling, r, rs, g: gloss, score: 0 };
   if (x.length) w.x = x;
-  if (best?.f && best.reading === r) w.f = best.f;
-  if (flags & PRIORITY) w.p = 1;
+  const f = best?.f && best.reading === r ? best.f : align(spelling, r);
+  if (f && chars.some(isKanji)) w.f = f;
+  if (flags & PRIORITY || (!fallback && !entries.length && glossOf.has(spelling))) w.p = 1;
   if (jlpt) w.j = jlpt;
   // Lower is better: glossed, common, easy JLPT, short, built from frequent kanji, then furifont's own score.
   const ks = chars.filter((c) => JOYO.has(c));
@@ -220,18 +256,36 @@ const order = [...joyoChars].sort((a, b) => {
 
 const sims = similarity(order, strokes, (k) => components.get(k) ?? [], (k) => kanjidata[k]!.strokes);
 
+// The curriculum: JLPT N5 → N1, then jōyō outside the JLPT lists. Within a level, frequency order, except that a
+// kanji's parts that are kanji themselves come first (言 before 語, 木 before 林), even when the JLPT lists put the
+// part one level higher (言 and 口 are N4, 語 is N5). Never more than one level: nothing from N1 turns up early.
+const freqPos = new Map(order.map((k, i) => [k, i]));
+const levelRank = (k: string) => { const j = kanjidata[k]!.jlpt_new; return j ? 5 - j : 5; }; // N5 → 0 … none → 5
+const curriculum: string[] = [];
+const placed = new Set<string>(), visiting = new Set<string>();
+function visit(k: string, maxRank = levelRank(k) + 1) {
+  if (placed.has(k) || visiting.has(k)) return;
+  visiting.add(k);
+  const parts = (components.get(k) ?? []).filter((c) => c !== k && JOYO.has(c) && levelRank(c) <= maxRank);
+  for (const c of parts.sort((a, b) => freqPos.get(a)! - freqPos.get(b)!)) visit(c, maxRank);
+  visiting.delete(k);
+  placed.add(k);
+  curriculum.push(k);
+}
+for (let rank = 0; rank <= 5; rank++) for (const k of order) if (levelRank(k) === rank) visit(k);
+
 const usedWords: Word[] = [];
 const wordIndex = new Map<string, number>();
-const kanji: Kanji[] = order.map((k, i) => {
+const kanji: Kanji[] = curriculum.map((k) => {
   const d = kanjidata[k]!;
   const ws = (byKanji.get(k) ?? []).sort((a, b) => a.score - b.score || a.w.localeCompare(b.w));
   const glossed = ws.filter((w) => w.g);
-  // Up to 12 words: glossed ones first; unglossed only to reach 3.
-  const chosen = [...glossed.slice(0, 12), ...ws.filter((w) => !w.g).slice(0, Math.max(0, 3 - glossed.length))];
+  // Up to 16 words, so there's choice once prompts must be readable: glossed first; unglossed only to reach 3.
+  const chosen = [...glossed.slice(0, 16), ...ws.filter((w) => !w.g).slice(0, Math.max(0, 3 - glossed.length))];
   const override = OVERRIDES[k];
   if (override) chosen.sort((a, b) => (a.w === override[0] ? -1 : b.w === override[0] ? 1 : 0));
   return {
-    k, i,
+    k, i: freqPos.get(k)!,
     m: d.meanings.filter((m) => !/radical/i.test(m)).slice(0, 3).concat(d.meanings.every((m) => /radical/i.test(m)) ? d.meanings.slice(0, 2) : []),
     on: (d.readings_on ?? []).map(toKata),
     kun: d.readings_kun ?? [],

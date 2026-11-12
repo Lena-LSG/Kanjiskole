@@ -47,7 +47,7 @@ export default function KanjiTab() {
                   <T size={16} numberOfLines={1}>{k.m.slice(0, 3).join(", ")}</T>
                   <J size={14} color={C.highlight} numberOfLines={1}>{[...k.on.slice(0, 2), ...k.kun.slice(0, 2).map((r) => r.replace(".", ""))].join("・")}</J>
                 </View>
-                <T size={12} color={C.faint}>#{k.i + 1}</T>
+                <T size={12} color={C.faint}>{k.j ? `N${k.j}` : "–"}</T>
                 <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: DOT[st], borderWidth: st === 0 ? 1 : 0, borderColor: C.outline }} />
               </Pressable>
             );

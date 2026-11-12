@@ -109,6 +109,8 @@ export function lookalikes(
   rng: Rng,
   n = 3,
   accept: (o: Kanji) => boolean = () => true,
+  /** false for a new card: plain neighbours in the curriculum, not the confusables. */
+  similar = true,
 ): Kanji[] {
   const out: Kanji[] = [];
   const seen = new Set([firstMeaning(k)]);
@@ -117,10 +119,12 @@ export function lookalikes(
     seen.add(firstMeaning(o));
     out.push(o);
   };
-  for (const s of shuffle(rng, k.sim.slice(0, 12))) { if (out.length >= n) break; take(data.get(s)); }
+  if (similar) for (const s of shuffle(rng, k.sim.slice(0, 12))) { if (out.length >= n) break; take(data.get(s)); }
+  const near = new Set(similar ? [] : k.sim.slice(0, 6));
+  const at = data.pos(k);
   for (let guard = 0; out.length < n && guard < 400; guard++) {
-    const o = data.kanji[Math.max(0, Math.min(data.kanji.length - 1, k.i + Math.floor(rng() * 160) - 80))]!;
-    if (Math.abs(o.s - k.s) <= 3 || guard > 200) take(o);
+    const o = data.kanji[Math.max(0, Math.min(data.kanji.length - 1, at + Math.floor(rng() * 160) - 80))]!;
+    if ((Math.abs(o.s - k.s) <= 3 && !near.has(o.k)) || guard > 200) take(o);
   }
   return out;
 }

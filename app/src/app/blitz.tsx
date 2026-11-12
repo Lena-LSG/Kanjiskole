@@ -1,6 +1,6 @@
 // Lyntest: 60 seconds of multiple choice. Misses on known kanji are pulled into today's reviews.
 import {
-  BLITZ_MS, blitzPool, blitzVerdict, drawFrom, isStarted, makeExercise, scoreAnswer,
+  BLITZ_MS, blitzPool, blitzVerdict, drawFrom, isStarted, makeExercise, planFor, scoreAnswer,
   type BlitzScore, type CardState, type Exercise, type Option,
 } from "@kanjiskole/core";
 import { router } from "expo-router";
@@ -10,6 +10,7 @@ import { Marked } from "@/components/AnswerPanel";
 import { Screen } from "@/components/Screen";
 import { Card, Ghost, Group, J, KanjiSquare, LinkButton, Primary, T } from "@/components/ui";
 import { t } from "@/i18n";
+import { useKnown } from "@/lib/known";
 import { useKeys } from "@/lib/useKeys";
 import { data, useApp } from "@/state/AppState";
 import { C } from "@/theme";
@@ -72,6 +73,7 @@ function Run({ cards, best, score, setScore, onMiss, onEnd, misses }: {
   setScore: (s: BlitzScore) => void; onMiss: (k: string) => void; onEnd: (s: BlitzScore, misses: string[]) => void;
 }) {
   const pool = useMemo(() => blitzPool(cards as Map<string, CardState>, data), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const known = useKnown(cards);
   const endAt = useRef(Date.now() + BLITZ_MS).current;
   const last = useRef<string | undefined>(undefined); // before the first next(), which reads it
   const [left, setLeft] = useState(BLITZ_MS);
@@ -85,7 +87,8 @@ function Run({ cards, best, score, setScore, onMiss, onEnd, misses }: {
   function next(): Exercise {
     const k = drawFrom(pool, Math.random, last.current);
     last.current = k;
-    return makeExercise(data.get(k)!, data, Math.random, { noType: true });
+    const kanji = data.get(k)!;
+    return makeExercise(kanji, data, Math.random, { ...planFor(kanji, cards.get(k), data, known), noType: true });
   }
 
   useEffect(() => {

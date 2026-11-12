@@ -1,7 +1,7 @@
 // A study session: reviews oldest-first with new kanji woven in, misses requeued three cards back.
 import {
   afterAnswer, afterIntro, buildSession, explainKanjiChoice, explainReading, judgeTyped, makeExercise, newToday,
-  preferredKind, preview, toKana, type CardState, type Exercise, type ExerciseKind, type Explanation, type Grade,
+  planFor, preferredKind, preview, toKana, type CardState, type Exercise, type ExerciseKind, type Explanation, type Grade,
   type Item, type Option, type Verdict, type Word,
 } from "@kanjiskole/core";
 import { router, useLocalSearchParams } from "expo-router";
@@ -12,6 +12,7 @@ import { Screen } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
 import { Card, Ghost, Group, J, KanjiSquare, LinkButton, Mixed, Primary, T } from "@/components/ui";
 import { t } from "@/i18n";
+import { useKnown } from "@/lib/known";
 import { useKeys } from "@/lib/useKeys";
 import { data, useApp } from "@/state/AppState";
 import { C, R } from "@/theme";
@@ -34,6 +35,7 @@ export default function Session() {
   const [step, setStep] = useState(0);
   const failed = useRef(new Set<string>()).current;
   const answers = useRef(0);
+  const known = useKnown(cards);
   const head = q[0];
 
   const settle = (item: Item, s: Settle) => {
@@ -57,9 +59,9 @@ export default function Session() {
     return <Intro key={step} bar={bar} kanji={kanji} onDone={() => { setQ((cur) => afterIntro(cur)); setStep((x) => x + 1); }} />;
   }
   if (head.t === "flash") {
-    return <Flash key={step} bar={bar} status={status} kanjiK={head.k} card={card} onSettle={(s) => settle(head, s)} />;
+    return <Flash key={step} bar={bar} status={status} kanjiK={head.k} card={card} known={known} onSettle={(s) => settle(head, s)} />;
   }
-  return <Quiz key={step} bar={bar} status={status} kanjiK={head.k} card={card} onSettle={(s) => settle(head, s)} />;
+  return <Quiz key={step} bar={bar} status={status} kanjiK={head.k} card={card} known={known} onSettle={(s) => settle(head, s)} />;
 }
 
 function Chips({ a, b }: { a: string; b: string }) {
@@ -80,7 +82,7 @@ function Intro({ bar, kanji, onDone }: { bar: React.ReactNode; kanji: NonNullabl
   return (
     <Screen>
       {bar}
-      <Chips a={t.session.newKanji} b={`#${kanji.i + 1}`} />
+      <Chips a={t.session.newKanji} b={kanji.j ? `N${kanji.j}` : "jōyō"} />
       <View style={{ alignItems: "center", paddingVertical: 8 }}><KanjiSquare k={kanji.k} size={180} /></View>
       <AnswerPanel kanji={kanji} />
       <Primary label={t.session.gotIt} onPress={onDone} />
@@ -91,9 +93,9 @@ function Intro({ bar, kanji, onDone }: { bar: React.ReactNode; kanji: NonNullabl
 
 // ---------- flashcards ----------
 
-function Flash({ bar, status, kanjiK, card, onSettle }: { bar: React.ReactNode; status: string; kanjiK: string; card?: CardState; onSettle: (s: Settle) => void }) {
+function Flash({ bar, status, kanjiK, card, known, onSettle }: { bar: React.ReactNode; status: string; kanjiK: string; card?: CardState; known: ReadonlySet<string>; onSettle: (s: Settle) => void }) {
   const kanji = data.get(kanjiK)!;
-  const word = data.wordsOf(kanji)[0];
+  const word = useMemo(() => planFor(kanji, card, data, known).words[0], []); // eslint-disable-line react-hooks/exhaustive-deps
   const [shown, setShown] = useState(false);
   const start = useRef(Date.now()).current;
   const pv = useMemo(() => preview(card, Date.now()), [card]);
@@ -141,10 +143,14 @@ function Flash({ bar, status, kanjiK, card, onSettle }: { bar: React.ReactNode; 
 
 type Result = { ok: boolean; chosen?: Option; verdict?: Verdict; at: number };
 
-function Quiz({ bar, status, kanjiK, card, onSettle }: { bar: React.ReactNode; status: string; kanjiK: string; card?: CardState; onSettle: (s: Settle) => void }) {
+function Quiz({ bar, status, kanjiK, card, known, onSettle }: { bar: React.ReactNode; status: string; kanjiK: string; card?: CardState; known: ReadonlySet<string>; onSettle: (s: Settle) => void }) {
   const kanji = data.get(kanjiK)!;
   const ex = useMemo<Exercise>(
-    () => makeExercise(kanji, data, Math.random, { prefer: preferredKind(card, data.wordsOf(kanji).length > 0) }),
+    () => {
+      // What this card is ready for: readable words, exercise types and distractors by how well she knows it.
+      const plan = planFor(kanji, card, data, known);
+      return makeExercise(kanji, data, Math.random, { ...plan, prefer: preferredKind(card, plan.words.length > 0) });
+    },
     [], // eslint-disable-line react-hooks/exhaustive-deps -- one exercise per card on screen
   );
   const word: Word | undefined = "word" in ex ? ex.word : undefined;

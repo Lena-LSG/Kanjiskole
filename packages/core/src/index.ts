@@ -1,5 +1,6 @@
 export * from "./blitz.ts";
 export * from "./cards.ts";
+export * from "./curriculum.ts";
 export * from "./data.ts";
 export * from "./day.ts";
 export * from "./distractors.ts";

@@ -24,7 +24,8 @@ export interface Word {
 
 export interface Kanji {
   k: string;
-  /** Frequency order, 0-based. This is the calibration and new-card order. */
+  /** Frequency rank, 0-based (newspaper frequency, unranked last). The array order of Dataset.kanji is the
+   * curriculum: JLPT N5 → N1, parts before the kanji built from them. */
   i: number;
   m: string[];
   /** On readings, katakana. */

@@ -31,7 +31,7 @@ export default function Calibrate() {
     const now = Date.now();
     record([...picked].map((k) => ({ t: "calibrate" as const, k, due: calibrationDue(now, Math.random, meta.settings.rolloverHour) })));
     const lastK = batch[batch.length - 1];
-    if (lastK) setMeta("calPos", lastK.i + 1);
+    if (lastK) setMeta("calPos", data.pos(lastK) + 1);
     setPicked(new Set());
   };
 
@@ -47,7 +47,7 @@ export default function Calibrate() {
     );
   }
 
-  const first = batch[0]!.i + 1, last = batch[batch.length - 1]!.i + 1;
+  const first = data.pos(batch[0]!) + 1, last = data.pos(batch[batch.length - 1]!) + 1;
   return (
     <Screen>
       <TopBar onBack={leave} backLabel={t.session.back} progress={meta.calPos / data.kanji.length} label={`#${first}–${last}`} />

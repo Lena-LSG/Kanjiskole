@@ -25,56 +25,65 @@ export const WEIGHTS: Record<QuizKind, number> = { mean: 3, which: 2, read: 3, t
 
 export const meaningLabel = (k: Kanji) => k.m.slice(0, 2).join(", ");
 
-/** Which types this kanji supports, given its words. */
-export function availableKinds(k: Kanji, data: KanjiData, noType = false): QuizKind[] {
-  const ws = data.wordsOf(k);
-  const kinds: QuizKind[] = ["mean", "which"];
-  if (ws.length) { kinds.push("read"); if (!noType) kinds.push("type"); }
-  if (ws.some((w) => [...w.w].length >= 2)) kinds.push("fill");
-  return kinds;
-}
-
 /** Prompt words: the most common few with a gloss, so prompts stay meaningful. */
-function promptWords(k: Kanji, data: KanjiData): Word[] {
+function defaultWords(k: Kanji, data: KanjiData): Word[] {
   const ws = data.wordsOf(k);
   const glossed = ws.filter((w) => w.g);
   return (glossed.length ? glossed : ws).slice(0, 6);
 }
 
-export function makeExercise(
-  k: Kanji,
-  data: KanjiData,
-  rng: Rng,
-  opts: { noType?: boolean; prefer?: QuizKind } = {},
-): Exercise {
-  const avail = availableKinds(k, data, opts.noType);
+export interface ExerciseOptions {
+  noType?: boolean;
+  prefer?: QuizKind;
+  /** Words questions may use (from planFor). Defaults to the kanji's most common glossed words. */
+  words?: Word[];
+  /** Weights per type; a type weighted 0 or missing is never picked. Defaults to WEIGHTS. */
+  weights?: Partial<Record<QuizKind, number>>;
+  /** Visually confusable distractors (default) or plain curriculum neighbours for new cards. */
+  similar?: boolean;
+}
+
+/** Which types this kanji supports, given the words it may use. */
+export function availableKinds(k: Kanji, data: KanjiData, noType = false, words: Word[] = defaultWords(k, data)): QuizKind[] {
+  const kinds: QuizKind[] = ["mean", "which"];
+  if (words.length) { kinds.push("read"); if (!noType) kinds.push("type"); }
+  if (words.some((w) => [...w.w].length >= 2)) kinds.push("fill");
+  return kinds;
+}
+
+export function makeExercise(k: Kanji, data: KanjiData, rng: Rng, opts: ExerciseOptions = {}): Exercise {
+  const words = opts.words ?? defaultWords(k, data);
+  const weights = opts.weights ?? WEIGHTS;
+  const similar = opts.similar ?? true;
+  const avail = availableKinds(k, data, opts.noType, words);
   let kind: QuizKind | undefined = opts.prefer && avail.includes(opts.prefer) ? opts.prefer : undefined;
   if (!kind) {
-    let x = rng() * avail.reduce((s, a) => s + WEIGHTS[a], 0);
-    kind = avail.find((a) => (x -= WEIGHTS[a]) < 0) ?? "mean";
+    const weighted = avail.filter((a) => (weights[a] ?? 0) > 0);
+    let x = rng() * weighted.reduce((s, a) => s + weights[a]!, 0);
+    kind = weighted.find((a) => (x -= weights[a]!) < 0) ?? "mean";
   }
   const kanjiOptions = (accept?: (o: Kanji) => boolean) =>
-    shuffle(rng, [{ label: k.k, ok: true, k: k.k }, ...lookalikes(k, data, rng, 3, accept).map((o) => ({ label: o.k, ok: false, k: o.k }))]);
+    shuffle(rng, [{ label: k.k, ok: true, k: k.k }, ...lookalikes(k, data, rng, 3, accept, similar).map((o) => ({ label: o.k, ok: false, k: o.k }))]);
 
   switch (kind) {
     case "mean": {
       const right = meaningLabel(k);
-      const others = lookalikes(k, data, rng, 3, (o) => meaningLabel(o) !== right);
+      const others = lookalikes(k, data, rng, 3, (o) => meaningLabel(o) !== right, similar);
       return { kind, k, options: shuffle(rng, [{ label: right, ok: true }, ...others.map((o) => ({ label: meaningLabel(o), ok: false, k: o.k }))]) };
     }
     case "which":
       return { kind, k, meaning: meaningLabel(k), options: kanjiOptions() };
     case "fill": {
-      const word = pick(rng, data.wordsOf(k).filter((w) => [...w.w].length >= 2).slice(0, 6));
+      const word = pick(rng, words.filter((w) => [...w.w].length >= 2));
       // A distractor must not complete a different real word (□当 with 相 gives 相当).
       const accept = (o: Kanji) => !data.word(word.w.replaceAll(k.k, o.k));
       return { kind, k, word, options: kanjiOptions(accept) };
     }
     case "read": {
-      const word = pick(rng, promptWords(k, data));
+      const word = pick(rng, words);
       return { kind, k, word, options: readingOptions(word, data, rng).map((r) => ({ label: r, ok: r === word.r })) };
     }
     case "type":
-      return { kind, k, word: pick(rng, promptWords(k, data)) };
+      return { kind, k, word: pick(rng, words) };
   }
 }

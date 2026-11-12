@@ -7,6 +7,7 @@ export class KanjiData {
   readonly words: readonly Word[];
   readonly version: string;
   private readonly byK = new Map<string, Kanji>();
+  private readonly posOf = new Map<string, number>();
   private readonly bySpelling = new Map<string, Word>();
   /** Every primary reading, for the last-resort distractor. */
   readonly allReadings: readonly string[];
@@ -15,12 +16,14 @@ export class KanjiData {
     this.kanji = ds.kanji;
     this.words = ds.words;
     this.version = ds.version;
-    for (const k of ds.kanji) this.byK.set(k.k, k);
+    ds.kanji.forEach((k, i) => { this.byK.set(k.k, k); this.posOf.set(k.k, i); });
     for (const w of ds.words) this.bySpelling.set(w.w, w);
     this.allReadings = [...new Set(ds.words.map((w) => w.r))];
   }
 
   get(k: string): Kanji | undefined { return this.byK.get(k); }
+  /** Position in the curriculum (the order new kanji are introduced). */
+  pos(k: Kanji | string): number { return this.posOf.get(typeof k === "string" ? k : k.k) ?? -1; }
   word(spelling: string): Word | undefined { return this.bySpelling.get(spelling); }
   wordsOf(k: Kanji): Word[] { return k.w.map((i) => this.words[i]!); }
 
