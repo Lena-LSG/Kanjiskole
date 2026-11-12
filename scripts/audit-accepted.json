@@ -2,32 +2,11 @@
   "$comment": "Advisories we knowingly accept. Each needs a reason and an expiry; scripts/audit.ts fails once it lapses.",
   "accepted": [
     {
-      "id": "GHSA-mrhx-c7xc-m3w5",
-      "package": "zod",
-      "path": "expo > @expo/cli > zod@3",
-      "reason": "Build-time only: @expo/cli validates app.json with it. Not in the app bundle, no untrusted input reaches it. No patched zod 3.x exists; npm's only fix is downgrading to Expo SDK 51.",
-      "expires": "2027-01-31"
-    },
-    {
-      "id": "GHSA-vcc3-ghjq-m6fr",
-      "package": "decode-uri-component",
-      "path": "expo-router > query-string@7 > decode-uri-component@0.2.2",
-      "reason": "Runtime, in URL parsing: a crafted link to the app could hang that tab (DoS, single user, no data exposure). Tested 2026-11-12: the fix (0.5.1) is ESM-only with a default export, while query-string 7 require()s it and calls it as a function, so an override would crash routing. Waits for an expo-router that drops query-string 7; re-check at the next SDK upgrade.",
-      "expires": "2027-01-31"
-    },
-    {
-      "id": "GHSA-gcqx-w48m-w2h4",
-      "package": "deepmerge",
-      "path": "expo > @expo/config > deepmerge@4.3.1",
-      "reason": "Build-time only: merges our own app.json config. No untrusted input reaches it, no fixed release exists.",
-      "expires": "2027-01-31"
-    },
-    {
-      "id": "GHSA-qr28-fpjm-wq7f",
-      "package": "decode-uri-component",
-      "path": "expo-router > query-string@7 > decode-uri-component@0.2.2",
-      "reason": "Same exposure as GHSA-vcc3-ghjq-m6fr: a crafted URL could hang that tab or the app (DoS, single user, no data exposure). The only fix is the Expo SDK 58 upgrade (expo-router 58 no longer uses it); planned right after the curriculum work. Short expiry on purpose.",
-      "expires": "2026-12-15"
+      "id": "GHSA-g3hv-75wg-m249",
+      "package": "minimatch",
+      "path": "expo > @expo/fingerprint > minimatch",
+      "reason": "Moderate, build-time only: Expo's build fingerprinting matches glob patterns we write ourselves; no untrusted input. Documented, not gating (the gate is high/critical).",
+      "expires": "2027-03-31"
     }
   ]
 }

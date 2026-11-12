@@ -27,8 +27,8 @@ npm test
 dependency genuinely needs a build step, run it explicitly rather than turning scripts back on globally.
 
 `npm ci` may warn that cached tarballs are corrupted and refresh them; that's npm healing its cache, and the
-lockfile hashes still verify. `npm audit` reports a high in zod under `@expo/cli`: accepted, see
-`scripts/audit-accepted.json`. Never `npm audit fix --force` (it downgrades Expo to SDK 51).
+lockfile hashes still verify. `npm audit` reports one moderate (minimatch, in Expo's build tooling): documented in
+`scripts/audit-accepted.json`. Never `npm audit fix --force`: it "fixes" things by downgrading Expo.
 
 ## Android build in the cloud (EAS)
 

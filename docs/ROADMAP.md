@@ -6,12 +6,9 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
 - M1 core + data pipeline (2026-10-28)
 - M2 app shell, Android + web, offline; first EAS APK running on the S26 (2026-10-28)
 - English UI option
+- Expo SDK 58 (2026-11-12): closes the URL-parsing advisories
 - Curriculum (2026-11-12): JLPT order with parts first, prompts limited to words she can read, difficulty that
   ramps with each card (item 5 below, apart from vocabulary cards)
-
-## Soon: Expo SDK 58
-- Two decode-uri-component advisories (one high, a URL-parsing DoS) are only fixed by expo-router 58. Upgrade the
-  whole SDK set from SDK 58's bundledNativeModules.json after the curriculum work; the acceptance expires 2026-12-15.
 
 ## Security
 - Review of 2026-11-12: `docs/SECURITY-REVIEW.md`. Fixed S1–S7; Lena's settings (GitHub branch protection, push

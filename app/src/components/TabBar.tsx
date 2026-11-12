@@ -19,7 +19,7 @@ export const TAB_BAR_SPACE = 112;
 
 type BottomTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
-export function TabBar({ state, navigation }: BottomTabBarProps) {
+export function TabBar({ state, navigateToTab }: BottomTabBarProps) {
   const ins = useSafeAreaInsets();
   return (
     <View
@@ -38,7 +38,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
                 key={r.key}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: on }}
-                onPress={() => { if (!on) navigation.navigate(r.name); }}
+                onPress={() => { if (!on) navigateToTab(r.key); }}
                 style={{ flex: 1, height: 60, borderRadius: 30, backgroundColor: on ? C.tabActive : "transparent", alignItems: "center", justifyContent: "center", gap: 2 }}
               >
                 <J size={20} style={{ lineHeight: 22 }} accessibilityElementsHidden importantForAccessibility="no">{tab.icon}</J>

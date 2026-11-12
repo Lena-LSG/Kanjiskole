@@ -2,6 +2,16 @@
 
 Changes to the handover (`HANDOVER.md`) and why. Newest first.
 
+## 2026-11-12: Expo SDK 58
+
+- expo 58.0.21, React Native 0.88.1, React 19.3.0, expo-router 58.0.28; every pin from SDK 58's
+  `bundledNativeModules.json`, each at least two weeks old (cutoff 29 October). TypeScript stays 6.0.3.
+- Fixes the two decode-uri-component advisories (expo-router no longer uses query-string 7) and the zod and
+  deepmerge findings: `npm audit` has no high or critical left. One documented moderate (minimatch, build-time).
+- Code changes it needed: the tab bar uses `navigateToTab` (expo-router 58 dropped `navigation` from tab bar props);
+  `File.write()` is now async, so the export awaits it before opening the share sheet.
+- Web output is now one chunk per screen (same origin, CSP unchanged).
+
 ## 2026-11-12: a curriculum, not a list
 
 - **New kanji in JLPT order:** N5 → N4 → N3 → N2 → N1, then jōyō outside the lists. Within a level, frequency

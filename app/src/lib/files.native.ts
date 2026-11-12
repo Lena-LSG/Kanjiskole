@@ -12,6 +12,6 @@ export async function saveText(name: string, text: string): Promise<void> {
   const f = new File(Paths.cache, name);
   if (f.exists) f.delete();
   f.create();
-  f.write(text);
+  await f.write(text); // async since SDK 58: finish writing before the share sheet reads it
   await Sharing.shareAsync(f.uri, { mimeType: "application/json", dialogTitle: name });
 }
