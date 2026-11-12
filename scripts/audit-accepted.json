@@ -12,8 +12,8 @@
       "id": "GHSA-vcc3-ghjq-m6fr",
       "package": "decode-uri-component",
       "path": "expo-router > query-string@7 > decode-uri-component@0.2.2",
-      "reason": "Runtime, in URL parsing: a crafted link to the app could hang that tab (DoS, single user, no data exposure). The fix (0.5.1, 2026-10-23) is younger than our two-week rule and a major jump under query-string 7; re-test it as an override once it has aged.",
-      "expires": "2026-11-15"
+      "reason": "Runtime, in URL parsing: a crafted link to the app could hang that tab (DoS, single user, no data exposure). Tested 2026-11-12: the fix (0.5.1) is ESM-only with a default export, while query-string 7 require()s it and calls it as a function, so an override would crash routing. Waits for an expo-router that drops query-string 7; re-check at the next SDK upgrade.",
+      "expires": "2027-01-31"
     },
     {
       "id": "GHSA-gcqx-w48m-w2h4",
