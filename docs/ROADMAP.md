@@ -37,5 +37,28 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
      (teach 木 before 林 and 森, 言 before 語), so each new kanji is built from parts she has seen.
    - **Vocabulary follows the kanji:** a word becomes a card of its own once all its kanji are known, easiest and
      most common first, so the word list grows out of what she can already read.
+   - **JLPT levels in order: no N1 before N5.** Today's frequency order puts 29 N3 kanji, one N2 and one N1 in
+     the first hundred. New kanji should come N5 → N4 → N3 → N2 → N1, frequency and component order within each
+     level, non-JLPT jōyō last. Calibration still lets her skip whole stretches she already reads.
    - **Exercise difficulty ramps:** meaning and recognition for new cards, readings next, typed recall and
      look-alike distractors once a card is stable.
+6. **Kana practice:** hiragana and katakana as their own track, before or alongside N5: recognition (kana →
+   romaji), production (romaji → pick the kana), dakuten/handakuten, yōon (きゃ), small っ, long vowels in katakana
+   (ー), and the classic look-alikes (シ/ツ, ソ/ン, ぬ/め, わ/ね). Same SRS and event log as the kanji. Typing by
+   ear once audio exists. Calibration can mark the whole track known in one tap.
+7. **Audio:** the device's Japanese text-to-speech (`expo-speech` on Android, the Web Speech API in the browser),
+   offline where the voice is installed. Play the word on the answer screen, a "listen and choose" exercise, and
+   a speaker button on every word in the detail view. Check the S26 and Xperia have a Japanese voice installed.
+
+## A personal WaniKani replacement
+What WaniKani has that we still lack, in the order to build it:
+- **A structured path** with levels that unlock: components → kanji → vocabulary (items 3 and 5).
+- **A mnemonic for every item.** WaniKani's are copyrighted, so never copied: hers, or written with Claude in chat
+  through the MCP server and saved to the kanji (`save_mnemonic`).
+- **Vocabulary audio** (item 7) and **example sentences** filtered to kanji she knows (needs the Tatoeba
+  jpn-eng file).
+- Beyond WaniKani: calibration for what she already reads, look-alike distractors, deterministic Hvorfor?,
+  handwriting (item 2), kana (item 6), offline, free, her data.
+
+Suggested order: curriculum + JLPT order + i+1 words → kana track → vocabulary cards → audio → M3 sync →
+mnemonics via MCP → handwriting.
