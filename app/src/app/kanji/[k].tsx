@@ -147,7 +147,7 @@ export default function KanjiDetail() {
                 {w.g ? <T size={14} color={C.muted}>{w.g}</T> : null}
               </View>
               <T size={13} color={!h ? C.faint : h.lastWrong ? C.wrong : C.highlight}>{note}</T>
-              <SpeakButton text={w.r} size={32} />
+              <SpeakButton text={w.r} word={w} size={32} />
             </View>
           );
         })}

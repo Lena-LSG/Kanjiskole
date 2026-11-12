@@ -1,7 +1,11 @@
 // Japanese read-aloud with the device's own text-to-speech (Android TTS, or the browser's Web Speech API):
 // offline where the voice is installed, nothing sent anywhere by us. Without a Japanese voice the app hides audio.
+import type { Word } from "@kanjiskole/core";
+import { createAudioPlayer, type AudioPlayer } from "expo-audio";
 import * as Speech from "expo-speech";
 import { useEffect, useState } from "react";
+import { localRecording } from "./audioCache";
+import { recordingName } from "./recordings";
 
 let found: Promise<string | null> | undefined;
 
@@ -38,9 +42,38 @@ export function useJapaneseVoice(): boolean {
 export function say(text: string) {
   if (voiceId === null || !text) return;
   try {
+    if (player) { try { player.remove(); } catch { /* already gone */ } player = null; }
     Speech.stop();
     Speech.speak(text, { language: "ja-JP", voice: voiceId, rate: 0.9 });
   } catch (e) {
     console.warn("Kanjiskole: text-to-speech failed", e); // audio is a nicety: never let it break a session
+  }
+}
+
+let player: AudioPlayer | null = null;
+const unavailable = new Set<string>(); // failed this session: don't ask the server again until the app restarts
+
+function stopAll() {
+  try { Speech.stop(); } catch { /* nothing playing */ }
+  if (player) { try { player.remove(); } catch { /* already gone */ } player = null; }
+}
+
+/**
+ * A word, by a native speaker when Kanji alive has a recording (fetched once, then kept), otherwise by the device
+ * voice from its kana reading. Any failure (offline on first play, a decoding error) falls back to the voice.
+ */
+export async function speakWord(w: Word) {
+  const name = recordingName(w);
+  stopAll();
+  if (!name || unavailable.has(name)) return say(w.r);
+  try {
+    const uri = await localRecording(name);
+    stopAll();
+    player = createAudioPlayer(uri);
+    player.play();
+  } catch (e) {
+    unavailable.add(name);
+    console.warn("Kanjiskole: recording unavailable, using the device voice", e);
+    say(w.r);
   }
 }

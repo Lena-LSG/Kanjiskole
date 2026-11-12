@@ -24,6 +24,7 @@ Severity is for this app as it is: one user, study progress, no credentials stor
 | S10 | GitHub | Default branch is the work branch; no branch protection; no required checks | Medium | **Open, Lena**: see "Settings to change" |
 | S11 | Data | `kotobako-data` comes from an unknown npm publisher | Low | Accepted: pinned by integrity hash, parsed as JSON only, never executed. Poisoned content could only mislead (wrong glosses), not run code. Cross-check against jmdict-simplified when GitHub releases are reachable |
 | S12 | App | Error screen shows the raw error message | Info | Accepted: local only, no secrets exist in the app; revisit when tokens exist (M3) |
+| S14 | App | Pronunciation recordings come from a third-party host (`media.kanjialive.com`) and are not hash-verified yet (the host is unreachable from the build sandbox) | Low | Accepted until M3: HTTPS only, the CSP allows that one origin for media and fetch, every file must start with the Ogg signature before it is played or cached, failures fall back to TTS. M3: self-host with SHA-256 per file in `audio.v1.json` |
 | S13 | Android | `allowBackup` is on, so progress goes to Google backup | Info | Accepted on purpose: it is the only backup until sync exists. Turn off (or exclude the auth store) once M3 stores tokens |
 
 Already in good shape: no secrets in the repository; `.env*` ignored; the lockfile resolves only from the npm

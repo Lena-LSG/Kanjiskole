@@ -12,7 +12,8 @@ import { Explain } from "@/components/Explain";
 import { Card, Ghost, Group, J, LinkButton, Primary, T } from "@/components/ui";
 import { t } from "@/i18n";
 import { useKnown } from "@/lib/known";
-import { hasVoice, say, useJapaneseVoice } from "@/lib/speech";
+import { hasVoice, speakWord, useJapaneseVoice } from "@/lib/speech";
+import { hasRecording } from "@/lib/recordings";
 import { SpeakButton } from "@/components/SpeakButton";
 import { useKeys } from "@/lib/useKeys";
 import { data, useApp } from "@/state/AppState";
@@ -71,7 +72,7 @@ function WordCard({ w, label }: { w: string; label?: string }) {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
         <J size={34}>{word.w}</J>
         <J size={20} color={C.highlight}>{word.r}</J>
-        <SpeakButton text={word.r} size={36} />
+        <SpeakButton text={word.r} word={word} size={36} />
         {word.j ? <T size={13} color={C.faint}>N{word.j}</T> : null}
       </View>
       <T size={16} color={C.muted}>{word.g}</T>
@@ -93,7 +94,7 @@ function Intro({ bar, wordK, onDone }: { bar: React.ReactNode; wordK: string; on
   const word = wordOf(wordK, data)!;
   const { meta } = useApp();
   const voice = useJapaneseVoice();
-  useEffect(() => { if (voice && meta.settings.autoSpeak) say(word.r); }, [voice]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if ((voice || hasRecording(word)) && meta.settings.autoSpeak) speakWord(word); }, [voice]); // eslint-disable-line react-hooks/exhaustive-deps
   useKeys((key, e) => { if (key === "Enter" || key === " ") { e.preventDefault(); onDone(); } else if (key === "Escape") leave(); });
   return (
     <Screen>
@@ -116,8 +117,8 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
 }) {
   const word = wordOf(wordK, data)!;
   const { meta } = useApp();
-  const ex = useMemo(() => makeWordExercise(word, card, data, Math.random, { audio: hasVoice() }), []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (ex.kind === "word-listen") say(word.r); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const ex = useMemo(() => makeWordExercise(word, card, data, Math.random, { audio: hasVoice() || hasRecording(word) }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (ex.kind === "word-listen") speakWord(word); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const start = useRef(Date.now()).current;
   const [res, setRes] = useState<{ ok: boolean; answer: string; at: number; alt?: boolean } | null>(null);
   const [typed, setTyped] = useState("");
@@ -125,7 +126,7 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
   const right = useMemo(() => t.session.right[Math.floor(Math.random() * t.session.right.length)]!, []);
 
   const go = (g: Grade, ok = res?.ok ?? false) => onSettle(g, ex, ok, res?.answer, (res?.at ?? Date.now()) - start);
-  useEffect(() => { if (res && meta.settings.autoSpeak && ex.kind !== "word-listen") say(word.r); }, [res !== null]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (res && meta.settings.autoSpeak && ex.kind !== "word-listen") speakWord(word); }, [res !== null]); // eslint-disable-line react-hooks/exhaustive-deps
   const choose = (o: { label: string; ok: boolean }) => { if (!res) setRes({ ok: o.ok, answer: o.label, at: Date.now() }); };
   const submit = () => {
     if (res || !typed.trim() || ex.kind !== "word-type") return;
@@ -166,7 +167,7 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
       <Card navy style={{ alignItems: "center", gap: 10, paddingVertical: 28 }}>
         <T size={15} color={C.onNavyMuted}>{q}</T>
         {ex.kind === "word-listen" ? (
-          <Pressable accessibilityRole="button" accessibilityLabel={t.audio.again} onPress={() => say(word.r)}
+          <Pressable accessibilityRole="button" accessibilityLabel={t.audio.again} onPress={() => speakWord(word)}
             style={({ pressed }) => ({ width: 120, height: 120, borderRadius: 60, backgroundColor: C.accent, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.8 : 1 })}>
             <T v="black" size={44}>▶</T>
           </Pressable>

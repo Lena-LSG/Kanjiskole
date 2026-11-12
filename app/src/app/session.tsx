@@ -15,7 +15,7 @@ import { Card, Ghost, Group, J, KanjiSquare, LinkButton, Primary, T } from "@/co
 import { t } from "@/i18n";
 import { useKnown } from "@/lib/known";
 import { useKeys } from "@/lib/useKeys";
-import { say } from "@/lib/speech";
+import { speakWord } from "@/lib/speech";
 import { data, useApp } from "@/state/AppState";
 import { C, R } from "@/theme";
 
@@ -166,7 +166,7 @@ function Quiz({ bar, status, kanjiK, card, known, onSettle }: { bar: React.React
 
   const answerText = res?.verdict?.got ?? res?.chosen?.label;
   const { meta } = useApp();
-  useEffect(() => { if (res && word && meta.settings.autoSpeak) say(word.r); }, [res !== null]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (res && word && meta.settings.autoSpeak) speakWord(word); }, [res !== null]); // eslint-disable-line react-hooks/exhaustive-deps
   const go = (grade: Grade, ok = res?.ok ?? false) =>
     onSettle({ grade, ex: ex.kind, ok, word: word?.w, answer: answerText, ms: (res?.at ?? Date.now()) - start });
 

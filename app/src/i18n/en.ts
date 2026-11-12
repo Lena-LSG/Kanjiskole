@@ -284,7 +284,7 @@ export const en: Strings = {
     exportRun: "Export",
     about: "About the data",
     aboutText:
-      "Kanji, words and components from KANJIDIC2, JMdict, RADKFILE and KRADFILE, the property of the Electronic Dictionary Research and Development Group, used under the Group's licence (CC BY-SA 4.0). Stroke order from KanjiVG (CC BY-SA 3.0).",
+      "Kanji, words and components from KANJIDIC2, JMdict, RADKFILE and KRADFILE, the property of the Electronic Dictionary Research and Development Group, used under the Group's licence (CC BY-SA 4.0). Stroke order from KanjiVG (CC BY-SA 3.0). Pronunciation recordings from Kanji alive (kanjialive.com, CC BY 4.0).",
     language: "Language",
     languages: { da: "Dansk", en: "English" },
     close: "Close",

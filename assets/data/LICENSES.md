@@ -15,5 +15,9 @@
 - **KanjiVG** stroke data © Ulrich Apel and contributors, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/),
   <https://kanjivg.tagaini.net>.
 
+- **Kanji alive** pronunciation recordings (native speakers), © Kanji alive, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
+  <https://kanjialive.com>. `audio.v1.json` maps our words to their files; the audio itself is fetched from
+  `media.kanjialive.com` on first play and kept on the device.
+
 The EDRDG asks for its data to be kept current: re-run `npm run data` after bumping the pins at least monthly.
 The app shows this attribution on its About screen.

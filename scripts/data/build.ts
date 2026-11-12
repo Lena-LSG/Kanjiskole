@@ -313,9 +313,49 @@ const dataset: Dataset = {
   words: usedWords,
 };
 
+// Native-speaker recordings (Kanji alive, CC BY 4.0): which of our words have one, and its file name. The file name
+// is the CSV's kname, "_06_", and a letter for the example's position (their own web app builds it the same way).
+const audio: Record<string, string> = {};
+{
+  const text = readFileSync(src("kanjialive.csv"), "utf8");
+  const rows: string[][] = [];
+  let row: string[] = [], cell = "", quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]!;
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+      else if (c === '"') quoted = false;
+      else cell += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if (c !== "\r") cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  const [head, ...body] = rows;
+  const col = (n: string) => head!.indexOf(n);
+  const ours = new Map(usedWords.map((w) => [w.w, w]));
+  for (const r of body) {
+    const examples = JSON.parse(r[col("examples")] || "[]") as [string, string][];
+    examples.forEach(([jp], i) => {
+      const m = jp.trim().match(/^(.+?)（(.+?)）$/);
+      if (!m) return;
+      const w = ours.get(respell(m[1]!));
+      if (w && (w.r === m[2] || w.rs.includes(m[2]!)) && !audio[w.w]) audio[w.w] = `${r[col("kname")]}_06_${"abcdefghijklmnopqrstuvwxyz"[i]}`;
+    });
+  }
+}
+
 const out = join(root, "assets/data");
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, "kanji.v1.json"), JSON.stringify(dataset));
+writeFileSync(join(out, "audio.v1.json"), JSON.stringify({
+  version: VERSION,
+  source: "Kanji alive (kanjialive.com), CC BY 4.0: native-speaker recordings of example words",
+  base: "https://media.kanjialive.com/examples_audio/audio-opus/",
+  ext: ".opus",
+  files: Object.fromEntries(Object.entries(audio).sort(([a], [b]) => a.localeCompare(b))),
+}));
 writeFileSync(join(out, "strokes.v1.json"), JSON.stringify(Object.fromEntries(order.map((k) => [k, strokes[k] ?? []]))));
 
 const noWords = kanji.filter((k) => !k.w.length).map((k) => k.k);
@@ -323,4 +363,5 @@ const fewGlossed = kanji.filter((k) => k.w.filter((i) => usedWords[i]!.g).length
 console.log(`${kanji.length} kanji, ${usedWords.length} words (${usedWords.filter((w) => !w.g).length} unglossed)`);
 console.log(`no words: ${noWords.length} ${noWords.join("")}`);
 console.log(`fewer than 2 glossed words: ${fewGlossed}`);
+console.log(`recordings: ${Object.keys(audio).length} words`);
 console.log(`no strokes: ${order.filter((k) => !strokes[k]?.length).join("") || "none"}`);

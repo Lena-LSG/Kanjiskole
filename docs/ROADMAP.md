@@ -7,7 +7,9 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
 - M2 app shell, Android + web, offline; first EAS APK running on the S26 (2026-10-28)
 - English UI option
 - Expo SDK 58 (2026-11-12): closes the URL-parsing advisories
-- Audio (2026-11-12): read-aloud, speaker buttons, listening exercises (item 7)
+- Audio (2026-11-12): read-aloud, speaker buttons, listening exercises (item 7); native-speaker recordings for
+  4,497 words from Kanji alive, device voice for the rest
+- Next for audio: VOICEVOX for the uncovered words; self-host and hash the recordings in M3
 - Hvorfor? explains why the right answer is right, on every exercise type (item 1)
 - Vocabulary cards (2026-11-12): words unlock when their kanji are known (item 3)
 - Kana track (2026-11-12): hiragana and katakana with their own sessions, calibration and chart (item 6; words in

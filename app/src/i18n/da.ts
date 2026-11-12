@@ -283,7 +283,7 @@ export const da = {
     exportRun: "Eksportér",
     about: "Om data",
     aboutText:
-      "Kanji, ord og komponenter fra KANJIDIC2, JMdict, RADKFILE og KRADFILE, ejet af Electronic Dictionary Research and Development Group og brugt under gruppens licens (CC BY-SA 4.0). Stregrækkefølge fra KanjiVG (CC BY-SA 3.0).",
+      "Kanji, ord og komponenter fra KANJIDIC2, JMdict, RADKFILE og KRADFILE, ejet af Electronic Dictionary Research and Development Group og brugt under gruppens licens (CC BY-SA 4.0). Stregrækkefølge fra KanjiVG (CC BY-SA 3.0). Udtaleoptagelser fra Kanji alive (kanjialive.com, CC BY 4.0).",
     language: "Sprog",
     languages: { da: "Dansk", en: "English" },
     close: "Luk",

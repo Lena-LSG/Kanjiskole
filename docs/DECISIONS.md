@@ -2,6 +2,19 @@
 
 Changes to the handover (`HANDOVER.md`) and why. Newest first.
 
+## 2026-11-12: native-speaker recordings
+
+- Kanji alive (CC BY 4.0) has recordings of 6–12 example words for 1,235 kanji; 4,497 of our words match by
+  spelling and reading. `audio.v1.json` (built from their CSV, pinned to commit e1e24d3 and SHA-256) maps word →
+  file name (`{kname}_06_{letter}.opus`, the scheme their own web app uses).
+- Order of preference: recording → device text-to-speech. A recording is fetched on first play and kept (Android:
+  app documents folder; web: browser cache plus an in-memory blob), and is checked to be Ogg before it is played
+  or cached, so an error page can't be cached as audio; any failure falls back to the voice.
+- Until M3 hosts our own copy, files come from `media.kanjialive.com` (blocked from the build sandbox, so they
+  can't be hashed yet). Their server sees the device IP on a word's first play. In M3: self-host the files with
+  the web build and verify each against a SHA-256 in the manifest.
+- Still to come: VOICEVOX-generated audio for the words Kanji alive doesn't cover (check each voice's terms first).
+
 ## 2026-11-12: audio and better Hvorfor?
 
 - **Audio** is the device's own text-to-speech (`expo-speech`: Android TTS, the browser's Web Speech API), offline
