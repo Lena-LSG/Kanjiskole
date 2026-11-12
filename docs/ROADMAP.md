@@ -62,3 +62,9 @@ What WaniKani has that we still lack, in the order to build it:
 
 Suggested order: curriculum + JLPT order + i+1 words → kana track → vocabulary cards → audio → M3 sync →
 mnemonics via MCP → handwriting.
+8. **Japanese keyboard for Japanese answers.** Android doesn't let an app switch the user's keyboard itself (only
+   the user, or a system app, can change the input method). What works instead: `imeHintLocales` set to Japanese
+   on the answer field, which Gboard and Samsung Keyboard honour by switching to their Japanese layout when it is
+   enabled. React Native's TextInput doesn't expose it, so it needs a small local Expo module (or a config plugin)
+   on Android. On the web: `lang="ja"` on the input, which some virtual keyboards respect. Romaji input stays as it
+   is for anyone without a Japanese keyboard, and kana typed directly is already accepted.
