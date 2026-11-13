@@ -1,4 +1,4 @@
-import { retention, streak } from "@kanjiskole/core";
+import { dueKana, dueWords, inTrack, KANA, isStarted, retention, streak, vocabProgress } from "@kanjiskole/core";
 import { router } from "expo-router";
 import { useMemo } from "react";
 import { Pressable, ScrollView, View } from "react-native";
@@ -10,6 +10,8 @@ import { TAB_BAR_SPACE } from "@/components/TabBar";
 import { Circle, Group, J, Row, T, WhitePill } from "@/components/ui";
 import { t } from "@/i18n";
 import { todayCounts } from "@/lib/today";
+import { useKnown } from "@/lib/known";
+import { Meter } from "@/components/Track";
 import { data, useApp, useNow } from "@/state/AppState";
 import { C, GUTTER, R } from "@/theme";
 
@@ -29,6 +31,31 @@ function Tile({ label, onPress, children }: { label: string; onPress?: () => voi
   );
 }
 
+/** A track on the home screen: its glyph, what's waiting, and how far along it is. */
+function TrackCard({ glyph, title, sub, due, progress, onPress }: { glyph: string; title: string; sub: string; due: number; progress: number; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${title}. ${t.track.dueBadge(due)}. ${sub}`}
+      onPress={onPress}
+      style={({ pressed }) => ({ flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line, borderRadius: R.tile, padding: 16, gap: 12, opacity: pressed ? 0.8 : 1, overflow: "hidden" })}
+    >
+      <J size={96} color={C.track} style={{ position: "absolute", right: -8, top: -14, lineHeight: 110 }} accessibilityElementsHidden importantForAccessibility="no">{glyph}</J>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <T v="bold" size={17}>{title}</T>
+        <T size={18} color={C.muted} accessibilityElementsHidden importantForAccessibility="no">›</T>
+      </View>
+      <View style={{ alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: due ? C.accent : C.track }}>
+        <T v="bold" size={13} color={due ? C.ink : C.muted}>{t.track.dueBadge(due)}</T>
+      </View>
+      <View style={{ gap: 8 }}>
+        <Meter value={progress} />
+        <T size={13} color={C.muted} numberOfLines={2}>{sub}</T>
+      </View>
+    </Pressable>
+  );
+}
+
 const Big = ({ n, sub }: { n: string; sub: string }) => (
   <View>
     <T v="black" size={44} style={{ lineHeight: 48 }}>{n}</T>
@@ -41,9 +68,14 @@ export default function Home() {
   const now = useNow();
   const ins = useSafeAreaInsets();
   const c = useMemo(() => todayCounts(cards, events, meta.settings, now), [cards, events, meta.settings, now]);
-  const acc = useMemo(() => retention(events, now - 30 * 864e5), [events, now]);
+  const acc = useMemo(() => retention(events, now - 30 * 864e5, inTrack("kanji")), [events, now]);
   const days = useMemo(() => streak(events, now, meta.settings.rolloverHour), [events, now, meta.settings.rolloverHour]);
   const waiting = c.due + c.newLeft;
+  const known = useKnown(cards);
+  const kanaDue = useMemo(() => dueKana(cards, now, meta.settings.rolloverHour).length, [cards, now, meta.settings.rolloverHour]);
+  const kanaStarted = useMemo(() => KANA.filter((x) => isStarted(cards.get(x.k))).length, [cards]);
+  const wordsDue = useMemo(() => dueWords(cards, now, meta.settings.rolloverHour).length, [cards, now, meta.settings.rolloverHour]);
+  const vp = useMemo(() => vocabProgress(cards, data, known), [cards, known]);
   const hour = new Date(now).getHours();
 
   return (
@@ -92,6 +124,11 @@ export default function Home() {
           </View>
 
           <View style={{ flexDirection: "row", gap: 12 }}>
+            <TrackCard glyph="か" title={t.track.kanaTitle} due={kanaDue} progress={kanaStarted / KANA.length} sub={t.track.kanaSub(kanaStarted, KANA.length)} onPress={() => router.push("/kana")} />
+            <TrackCard glyph="語" title={t.track.wordsTitle} due={wordsDue} progress={vp.unlocked ? vp.started / vp.unlocked : 0} sub={t.track.wordsSub(vp.started, vp.unlocked)} onPress={() => router.push("/words")} />
+          </View>
+
+          <View style={{ flexDirection: "row", gap: 12 }}>
             <Tile label={t.home.accuracy} onPress={() => router.navigate("/stats")}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <Ring value={acc ?? 0} />
@@ -114,8 +151,6 @@ export default function Home() {
           </View>
 
           <Group>
-            <Row icon="語" label={t.home.vocab} onPress={() => router.push("/words")} />
-            <Row icon="か" label={t.home.kana} onPress={() => router.push("/kana")} />
             <Row icon="測" label={t.home.calibrate} onPress={() => router.push("/calibrate")} />
             <Row icon="弱" label={t.home.weakest} onPress={() => router.navigate("/stats")} />
             <Row icon="設" label={t.home.settings} onPress={() => router.push("/settings")} last />

@@ -30,6 +30,7 @@ function Gate() {
       <Stack.Screen name="kana-session" options={{ gestureEnabled: false }} />
       <Stack.Screen name="settings" options={{ presentation: "modal" }} />
       <Stack.Screen name="kanji/[k]" />
+      <Stack.Screen name="word/[w]" />
     </Stack>
   );
 }

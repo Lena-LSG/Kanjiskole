@@ -1,6 +1,6 @@
 // A study session: reviews oldest-first with new kanji woven in, misses requeued three cards back.
 import {
-  afterAnswer, afterIntro, buildSession, explainKanjiChoice, explainReading, judgeTyped, makeExercise, newToday,
+  afterAnswer, afterIntro, buildSession, extraNew, explainKanjiChoice, explainReading, judgeTyped, makeExercise, newToday,
   planFor, preferredKind, preview, toKana, type CardState, type Exercise, type ExerciseKind, type Explanation, type Grade,
   type Item, type Option, type Verdict, type Word,
 } from "@kanjiskole/core";
@@ -29,9 +29,10 @@ export default function Session() {
   const { extra } = useLocalSearchParams<{ extra?: string }>();
   const [q, setQ] = useState<Item[]>(() => {
     const now = Date.now();
-    const onlyNew = !!extra;
-    // `extra` arrives from a URL (kanjiskole://session?extra=…): clamp it, never trust it.
-    const newLimit = onlyNew ? Math.min(30, Math.max(1, Math.floor(Number(extra)) || 5)) : Math.max(0, meta.settings.newPerDay - newToday(events, now, meta.settings.rolloverHour, isKanjiKey));
+    // `extra` arrives from a URL (kanjiskole://session?extra=…): extraNew clamps it, never trusts it.
+    const more = extraNew(extra);
+    const onlyNew = more !== null;
+    const newLimit = more !== null ? more : Math.max(0, meta.settings.newPerDay - newToday(events, now, meta.settings.rolloverHour, isKanjiKey));
     return buildSession(cards as Map<string, CardState>, data, { now, newLimit, style: meta.settings.reviewStyle, rolloverHour: meta.settings.rolloverHour, onlyNew });
   });
   const total = useRef(q.length).current;

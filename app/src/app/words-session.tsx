@@ -1,9 +1,9 @@
 // A vocabulary session: due words first, newly unlocked ones woven in. Same grades and Hvorfor? as the kanji.
 import {
-  afterAnswer, afterIntro, dueWords, explainKanjiChoice, explainReading, interleave, judgeTyped, makeWordExercise,
+  afterAnswer, afterIntro, dueWords, explainKanjiChoice, extraNew, NEW_PER_DAY, explainReading, interleave, judgeTyped, makeWordExercise,
   newToday, newWords, preview, toKana, wordOf, type CardState, type Explanation, type Grade, type Item, type WordExercise,
 } from "@kanjiskole/core";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Screen } from "@/components/Screen";
@@ -20,15 +20,18 @@ import { data, useApp } from "@/state/AppState";
 import { C, R } from "@/theme";
 
 const leave = () => (router.canGoBack() ? router.back() : router.replace("/words"));
-const NEW_PER_DAY = 10;
 
 export default function WordsSession() {
   const { cards, events, meta, record } = useApp();
   const known = useKnown(cards);
+  const { extra: rawExtra } = useLocalSearchParams<{ extra?: string }>();
   const [q, setQ] = useState<Item[]>(() => {
     const now = Date.now();
     const roll = meta.settings.rolloverHour;
-    const left = Math.max(0, NEW_PER_DAY - newToday(events, now, roll, (k) => k.startsWith("w:")));
+    // "5 extra new": only new words, beyond the day's allowance.
+    const extra = extraNew(rawExtra);
+    if (extra !== null) return interleave([], newWords(cards, data, known, extra), "quiz");
+    const left = Math.max(0, NEW_PER_DAY.words - newToday(events, now, roll, (k) => k.startsWith("w:")));
     return interleave(dueWords(cards, now, roll), newWords(cards, data, known, left), "quiz");
   });
   const total = useRef(q.length).current;

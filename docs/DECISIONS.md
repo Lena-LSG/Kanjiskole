@@ -195,3 +195,21 @@ level that registration doesn't happen, so the modules are absent at runtime.
 - `npm run check:native` now fails on duplicate versions, versions outside the SDK table, and any v2 module.
   Revisit when moving to an Expo release whose v2 registration is proven by a working APK.
 - Debugging rule: after one failed guess, get logcat first.
+
+## 2026-11-13 — Kana and vocabulary at the same level as kanji
+
+Lena: the tracks worked, but couldn't show progress or their full lists, and only kanji had "+5".
+
+- Kana and Ordforråd are hubs built from the same parts as the home screen (`components/Track.tsx`): navy band
+  and big glyph, start-or-"5 ekstra nye", today's split with "+5", a stage bar.
+- Kana: Hiragana/Katakana switch; the full chart as it's printed (gojūon in vowel columns with the gaps, dakuten,
+  yōon, loanword extensions), each cell coloured by stage; tap for a sheet with sound, stage, next review and
+  look-alikes. `kanaChart` in core lays it out.
+- Ordforråd: progress per JLPT level (started / unlocked / total, tap to filter), and the whole list (12,894 words)
+  with search (spelling, romaji/kana, English), status filter (all, started, ready, locked) and level filter.
+  Every word has a detail page (`/word/<w>`) with furigana, sound, stage and the kanji it's built from; locked
+  words say which kanji they wait for. Kanji-detail word rows link to it.
+- Extra new cards beyond the allowance in all three tracks: `extraNew` in core clamps the URL parameter to 1–30.
+- Statistik has a Kanji/Kana/Ord switch; stats functions take a track filter (kanji stays the default).
+- Home stays kanji-first; kana and vocabulary get cards (what's waiting, progress) under today's numbers.
+- The kanji list got the same level and stage filters.

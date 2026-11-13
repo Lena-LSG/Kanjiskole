@@ -12,10 +12,10 @@ const reviews = (events: readonly KanjiEvent[]) =>
 
 export interface DayStats { day: string; reviews: number; correct: number; newKanji: number }
 
-export function perDay(events: readonly KanjiEvent[], rolloverHour = DEFAULT_ROLLOVER): DayStats[] {
+export function perDay(events: readonly KanjiEvent[], rolloverHour = DEFAULT_ROLLOVER, include: (k: string) => boolean = () => true): DayStats[] {
   const days = new Map<string, DayStats>();
   const seen = new Set(events.filter((e) => e.t === "import" || e.t === "calibrate").map((e) => e.k));
-  for (const e of [...reviews(events)].sort((a, b) => a.at - b.at)) {
+  for (const e of [...reviews(events)].filter((e) => include(e.k)).sort((a, b) => a.at - b.at)) {
     const day = studyDay(e.at, rolloverHour);
     const d = days.get(day) ?? days.set(day, { day, reviews: 0, correct: 0, newKanji: 0 }).get(day)!;
     d.reviews++;
@@ -26,11 +26,11 @@ export function perDay(events: readonly KanjiEvent[], rolloverHour = DEFAULT_ROL
 }
 
 /** Share of answers right on cards she had already learned (first sightings excluded). */
-export function retention(events: readonly KanjiEvent[], since = 0): number | null {
+export function retention(events: readonly KanjiEvent[], since = 0, include: (k: string) => boolean = () => true): number | null {
   const seen = new Set(events.filter((e) => e.t === "import" || e.t === "calibrate").map((e) => e.k));
   let n = 0, ok = 0;
   for (const e of [...reviews(events)].sort((a, b) => a.at - b.at)) {
-    if (seen.has(e.k) && e.at >= since) { n++; if (e.ok) ok++; }
+    if (seen.has(e.k) && e.at >= since && include(e.k)) { n++; if (e.ok) ok++; }
     seen.add(e.k);
   }
   return n ? ok / n : null;
@@ -49,9 +49,9 @@ export function streak(events: readonly KanjiEvent[], now: number, rolloverHour 
 export interface Weak { k: string; retrievability: number; lapses: number; leech: boolean }
 
 /** Started kanji she is most likely to get wrong right now. */
-export function weakest(cards: Map<string, CardState>, now: number, limit = 20): Weak[] {
+export function weakest(cards: ReadonlyMap<string, CardState>, now: number, limit = 20, include: (k: string) => boolean = (k) => isKanjiCard({ k } as CardState)): Weak[] {
   const f = scheduler();
-  return [...cards.values()].filter((c) => isKanjiCard(c) && isStarted(c))
+  return [...cards.values()].filter((c) => include(c.k) && isStarted(c))
     .map((c) => ({
       k: c.k,
       retrievability: c.fsrs.state === State.Review ? f.get_retrievability(c.fsrs, new Date(now), false) : 0,
@@ -62,7 +62,8 @@ export function weakest(cards: Map<string, CardState>, now: number, limit = 20):
     .slice(0, limit);
 }
 
-export const leeches = (cards: Map<string, CardState>) => [...cards.values()].filter((c) => isKanjiCard(c) && isLeech(c)).map((c) => c.k);
+export const leeches = (cards: ReadonlyMap<string, CardState>, include: (k: string) => boolean = (k) => isKanjiCard({ k } as CardState)) =>
+  [...cards.values()].filter((c) => include(c.k) && isLeech(c)).map((c) => c.k);
 
 export function stageCounts(cards: Map<string, CardState>, total: number) {
   const out = { unseen: total, learning: 0, young: 0, mature: 0 };

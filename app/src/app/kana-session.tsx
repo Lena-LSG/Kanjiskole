@@ -1,6 +1,6 @@
 // A kana session: due kana first, new ones woven in, misses back three cards later. Same grades as the kanji.
 import {
-  afterAnswer, afterIntro, areConfusable, dueKana, interleave, judgeKana, KANA, kanaItem, makeKanaExercise, newKana, newToday,
+  afterAnswer, afterIntro, areConfusable, dueKana, extraNew, interleave, judgeKana, KANA, kanaItem, makeKanaExercise, NEW_PER_DAY, newKana, newToday,
   preview, toKana, type CardState, type Grade, type Item, type KanaExercise, type Script,
 } from "@kanjiskole/core";
 import { router, useLocalSearchParams } from "expo-router";
@@ -17,17 +17,19 @@ import { useApp } from "@/state/AppState";
 import { C, R } from "@/theme";
 
 const leave = () => (router.canGoBack() ? router.back() : router.replace("/kana"));
-const NEW_PER_DAY = 15; // kana are quick to learn; a day's new batch is about one gojūon block and a half
 
 export default function KanaSession() {
   const { cards, events, meta, record } = useApp();
-  const { script: s } = useLocalSearchParams<{ script?: string }>();
+  const { script: s, extra: rawExtra } = useLocalSearchParams<{ script?: string; extra?: string }>();
   const script: Script = s === "kata" ? "kata" : "hira";
   const [q, setQ] = useState<Item[]>(() => {
     const now = Date.now();
     const roll = meta.settings.rolloverHour;
+    // "5 extra new": only new kana, beyond the day's allowance.
+    const extra = extraNew(rawExtra);
+    if (extra !== null) return interleave([], newKana(cards, extra, script), "quiz");
     const due = dueKana(cards, now, roll).filter((k) => kanaItem(k)!.script === script);
-    const left = Math.max(0, NEW_PER_DAY - newToday(events, now, roll, (k) => !!kanaItem(k)));
+    const left = Math.max(0, NEW_PER_DAY.kana - newToday(events, now, roll, (k) => !!kanaItem(k)));
     return interleave(due, newKana(cards, left, script), "quiz");
   });
   const total = useRef(q.length).current;

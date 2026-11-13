@@ -5,19 +5,26 @@ import { FlatList, Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MAX_W } from "@/components/Screen";
 import { TAB_BAR_SPACE } from "@/components/TabBar";
+import { Chips, StageDot } from "@/components/Track";
 import { J, T } from "@/components/ui";
 import { t } from "@/i18n";
 import { search } from "@/lib/search";
 import { useApp } from "@/state/AppState";
-import { C, GUTTER, R } from "@/theme";
+import { C, GUTTER } from "@/theme";
 
-const DOT = [C.map.unseen, C.map.learning, C.map.young, C.map.mature] as const;
+type Level = "all" | "5" | "4" | "3" | "2" | "1" | "none";
+type Stage = "all" | "0" | "1" | "2" | "3";
 
 export default function KanjiTab() {
   const { cards } = useApp();
   const ins = useSafeAreaInsets();
   const [q, setQ] = useState("");
-  const results = useMemo(() => search(q), [q]);
+  const [level, setLevel] = useState<Level>("all");
+  const [st, setSt] = useState<Stage>("all");
+  const found = useMemo(() => search(q), [q]);
+  const results = useMemo(() => found.filter((k) =>
+    (level === "all" || (level === "none" ? !k.j : String(k.j) === level)) &&
+    (st === "all" || String(stage(cards.get(k.k))) === st)), [found, level, st, cards]);
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{ width: "100%", maxWidth: MAX_W, alignSelf: "center", flex: 1, paddingHorizontal: GUTTER, paddingTop: ins.top + 16, gap: 12 }}>
@@ -25,8 +32,17 @@ export default function KanjiTab() {
         <TextInput
           value={q} onChangeText={setQ} placeholder={t.kanji.search} placeholderTextColor={C.faint}
           autoCapitalize="none" autoCorrect={false} accessibilityLabel={t.kanji.search}
-          style={{ height: 52, borderRadius: 26, backgroundColor: C.surface, color: C.ink, paddingHorizontal: 20, fontSize: 17 }}
+          style={{ height: 52, flexShrink: 0, borderRadius: 26, backgroundColor: C.surface, color: C.ink, paddingHorizontal: 20, fontSize: 17 }}
         />
+        <Chips<Level> value={level} onChange={setLevel} options={[
+          { value: "all", label: t.kanji.allLevels },
+          ...(["5", "4", "3", "2", "1"] as const).map((l) => ({ value: l, label: `N${l}` })),
+          { value: "none", label: t.vocab.level(null) },
+        ]} />
+        <Chips<Stage> value={st} onChange={setSt} options={[
+          { value: "all", label: t.kanji.allStages },
+          ...(["1", "2", "3", "0"] as const).map((x) => ({ value: x, label: t.kanji.stages[Number(x)]! })),
+        ]} />
         <T size={13} color={C.muted}>{results.length ? t.kanji.results(results.length) : t.kanji.none}</T>
         <FlatList
           data={results}
@@ -34,13 +50,13 @@ export default function KanjiTab() {
           initialNumToRender={20}
           contentContainerStyle={{ paddingBottom: ins.bottom + TAB_BAR_SPACE }}
           renderItem={({ item: k, index }) => {
-            const st = stage(cards.get(k.k));
+            const kst = stage(cards.get(k.k));
             return (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${k.k}, ${k.m[0] ?? ""}, ${t.kanji.stages[st]}`}
+                accessibilityLabel={`${k.k}, ${k.m[0] ?? ""}, ${t.kanji.stages[kst]}`}
                 onPress={() => router.push(`/kanji/${encodeURIComponent(k.k)}`)}
-                style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: pressed ? C.surface : "transparent", borderRadius: R.small, borderBottomWidth: index < results.length - 1 ? 1 : 0, borderBottomColor: C.line })}
+                style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: pressed ? C.surface : "transparent", borderBottomWidth: index < results.length - 1 ? 1 : 0, borderBottomColor: C.line })}
               >
                 <J size={34} style={{ width: 44, lineHeight: 44 }}>{k.k}</J>
                 <View style={{ flex: 1 }}>
@@ -48,7 +64,7 @@ export default function KanjiTab() {
                   <J size={14} color={C.highlight} numberOfLines={1}>{[...k.on.slice(0, 2), ...k.kun.slice(0, 2).map((r) => r.replace(".", ""))].join("・")}</J>
                 </View>
                 <T size={12} color={C.faint}>{k.j ? `N${k.j}` : "–"}</T>
-                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: DOT[st], borderWidth: st === 0 ? 1 : 0, borderColor: C.outline }} />
+                <StageDot st={kst} />
               </Pressable>
             );
           }}

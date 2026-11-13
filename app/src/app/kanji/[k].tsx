@@ -2,7 +2,7 @@
 import { isLeech, isStarted, stage, type ReviewEvent } from "@kanjiskole/core";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { TextInput, View } from "react-native";
+import { Pressable, TextInput, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { Kun } from "@/components/AnswerPanel";
 import { SpeakButton } from "@/components/SpeakButton";
@@ -140,7 +140,8 @@ export default function KanjiDetail() {
           const h = history.get(w.w);
           const note = !h ? t.kanji.notSeen : h.lastWrong ? `✗ ${h.lastWrong}` : `✓ ${h.ok}/${h.n}`;
           return (
-            <View key={w.w} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: i < shown.length - 1 ? 1 : 0, borderBottomColor: C.line }}>
+            <Pressable key={w.w} accessibilityRole="button" accessibilityLabel={`${w.w}, ${w.r}, ${w.g}`} onPress={() => router.push(`/word/${encodeURIComponent(w.w)}`)}
+              style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: i < shown.length - 1 ? 1 : 0, borderBottomColor: C.line, opacity: pressed ? 0.7 : 1 })}>
               <J size={22} style={{ minWidth: 64 }}>{w.w}</J>
               <View style={{ flex: 1 }}>
                 <J size={16} color={C.highlight}>{w.r}</J>
@@ -148,7 +149,7 @@ export default function KanjiDetail() {
               </View>
               <T size={13} color={!h ? C.faint : h.lastWrong ? C.wrong : C.highlight}>{note}</T>
               <SpeakButton text={w.r} word={w} size={32} />
-            </View>
+            </Pressable>
           );
         })}
       </Group>
