@@ -40,6 +40,12 @@ npx eas-cli@latest init        # once; writes the project id into app.json, comm
 npx eas-cli@latest build -p android --profile preview
 ```
 
+From a Claude Code cloud session: use the **Kanji** environment (network: api.expo.dev, expo.dev,
+storage.googleapis.com; setup script runs `npm ci`). The Expo robot token "Claude (robot)" is saved there as a
+network secret for api.expo.dev, so the proxy adds it and no key exists in the repo or the session; the CLI only
+needs a placeholder: `EXPO_TOKEN=proxy-injected npx eas-cli@latest build -p android --profile preview
+--non-interactive --no-wait`. Revoke the robot token on expo.dev to cut that access.
+
 Let EAS generate and keep the keystore: every future update has to be signed with the same one.
 `eas build --local` does not run on Windows.
 
