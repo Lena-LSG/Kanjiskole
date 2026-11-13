@@ -18,7 +18,8 @@
     "test:watch": "TZ=Europe/Copenhagen vitest",
     "web": "npm run web -w app",
     "build:web": "cd app && EXPO_NO_TELEMETRY=1 npx expo export -p web",
-    "audit": "node scripts/audit.ts"
+    "audit": "node scripts/audit.ts",
+    "check:native": "node scripts/check-native-dupes.ts"
   },
   "devDependencies": {
     "@types/node": "22.20.5",

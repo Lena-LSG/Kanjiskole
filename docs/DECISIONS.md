@@ -2,6 +2,15 @@
 
 Changes to the handover (`HANDOVER.md`) and why. Newest first.
 
+## 2026-11-13: the first SDK 58 APK crashed at start
+
+- Cause found in the EAS build's own `expo doctor` output: duplicate native modules. Pinning "at least two weeks
+  old" had picked expo-constants 58.0.14 and expo-font 58.0.11, older than what `expo` 58.0.21 itself depends on
+  (58.0.16, 58.0.12), so npm installed both. Also `splash` in app.json, which SDK 58 no longer accepts.
+- Rule: a direct dependency is never older than the version the SDK package itself resolves; the age rule only
+  chooses among versions at or above that. `npm run check:native` (in CI) fails on any native module installed in
+  more than one version.
+
 ## 2026-11-12: native-speaker recordings
 
 - Kanji alive (CC BY 4.0) has recordings of 6–12 example words for 1,235 kanji; 4,497 of our words match by
