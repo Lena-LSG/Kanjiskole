@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Lena-LSG/Kanji/security/advisories/new
+    about: Please report security issues privately, not as an issue.
+  - name: Wrong dictionary data (a reading, meaning or word)
+    url: https://www.edrdg.org/
+    about: Kanjiskole's dictionary comes from the EDRDG's JMdict and KANJIDIC2; their site explains how to submit corrections, which then reach every app that uses the data.

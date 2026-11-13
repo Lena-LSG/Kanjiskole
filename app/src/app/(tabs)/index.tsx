@@ -89,12 +89,14 @@ export default function Home() {
 
         <View style={{ width: "100%", maxWidth: MAX_W, alignSelf: "center", paddingHorizontal: GUTTER, paddingTop: ins.top + 16, gap: 16 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Circle label={t.home.profile} onPress={() => router.push("/settings")}><T v="bold" size={18}>L</T></Circle>
+            <Circle label={t.home.profile} onPress={() => router.push("/settings")}>
+              {meta.settings.name.trim() ? <T v="bold" size={18}>{[...meta.settings.name.trim()][0]!.toUpperCase()}</T> : <J size={20}>設</J>}
+            </Circle>
             <Circle label={t.home.search} onPress={() => router.navigate("/kanji")}><J size={20}>検</J></Circle>
           </View>
 
           <View style={{ marginTop: 92, gap: 6 }}>
-            <T size={17} color={C.onNavy}>{t.greeting(hour)}, Lena</T>
+            <T size={17} color={C.onNavy}>{t.greeting(hour)}{meta.settings.name ? `, ${meta.settings.name}` : ""}</T>
             <T v="black" size={46} style={{ lineHeight: 48, letterSpacing: -0.5 }} accessibilityRole="header">
               {waiting ? t.home.waiting(waiting) : t.home.doneTitle}
             </T>

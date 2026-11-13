@@ -326,6 +326,8 @@ export const en: Strings = {
   },
   settings: {
     title: "Settings",
+    name: "Your name",
+    namePlaceholder: "Optional, for the greeting on the home screen",
     perDay: "New kanji per day",
     style: "Reviews as",
     quiz: "Mixed quiz",

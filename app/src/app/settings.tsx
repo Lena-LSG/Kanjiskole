@@ -72,6 +72,10 @@ export default function Settings() {
         <T v="bold" size={17} style={{ marginTop: 8 }}>{t.settings.style}</T>
         <Segmented options={[["quiz", t.settings.quiz], ["flash", t.settings.flash]]} value={meta.settings.reviewStyle}
           onChange={(v) => setMeta("settings", { ...meta.settings, reviewStyle: v })} />
+        <T v="bold" size={17} style={{ marginTop: 8 }}>{t.settings.name}</T>
+        <TextInput value={meta.settings.name} onChangeText={(v) => setMeta("settings", { ...meta.settings, name: v.slice(0, 40) })}
+          placeholder={t.settings.namePlaceholder} placeholderTextColor={C.faint} accessibilityLabel={t.settings.name} autoCorrect={false}
+          style={{ height: 48, borderRadius: R.small, borderWidth: 1, borderColor: C.outline, color: C.ink, paddingHorizontal: 14, fontSize: 16 }} />
         <T v="bold" size={17} style={{ marginTop: 8 }}>{t.settings.language}</T>
         <Segmented options={LANGS.map((l) => [l, t.settings.languages[l]] as [typeof l, string])} value={meta.settings.uiLang}
           onChange={(l) => setMeta("settings", { ...meta.settings, uiLang: l })} />

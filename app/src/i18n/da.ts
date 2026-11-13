@@ -325,6 +325,8 @@ export const da = {
   },
   settings: {
     title: "Indstillinger",
+    name: "Dit navn",
+    namePlaceholder: "Valgfrit, til hilsenen på forsiden",
     perDay: "Nye kanji pr. dag",
     style: "Repetitioner som",
     quiz: "Blandet quiz",

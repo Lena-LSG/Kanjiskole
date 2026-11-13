@@ -1,14 +1,18 @@
 # Kanjiskole: handover for Claude Code
 
-A kanji-reading trainer for one user (Lena), built properly: web + Android, synced progress, and Claude built into the learning loop. A working single-file prototype exists in `prototype/`. Treat it as the behavioural spec for v1 and replace it, don't extend it.
+> The original brief the app was built from (October 2026), kept as the design rationale. It was written for one
+> learner; personal details have since been removed. Where the app later went another way, `DECISIONS.md` says so
+> and wins.
+
+A kanji-reading trainer for one learner, built properly: web + Android, synced progress, and Claude built into the learning loop. A working single-file prototype exists in `prototype/`. Treat it as the behavioural spec for v1 and replace it, don't extend it.
 
 ## 1. Who it's for
 
-- **User:** Lena. Japanese is B2 for speaking and listening, but her kanji are limited. That gap is the whole point of the app. Her native language is English and her Danish is near-native.
+- **User:** one learner whose spoken Japanese is far ahead of their kanji. That gap is the whole point of the app.
 - **UI language:** Danish by default, which doubles as Danish practice. Kanji meanings are in English because the source data is. Explanations Claude writes are in Danish, with an English toggle.
-- **Devices:** Android (Samsung S26 Ultra) is primary, plus the web on laptop. Most sessions happen on the phone, often late at night.
-- **Prior art:** She built **DANSK** (dansk.lenagibson.eu): GitHub Pages + Supabase, SM-2, an Expo Android build via EAS, and quiz, mock-exam, weak-spot and history modes. Reuse what worked there, including auth, Supabase conventions and the EAS setup, and avoid the build pain it went through (Node/Java/Gradle version conflicts, path length, corrupted PNG assets).
-- **Suggested home:** `kanji.lenagibson.eu`. The root domain is parked and only the `dansk` subdomain is in use.
+- **Devices:** Android is primary, plus the web. Most sessions happen on the phone, often after midnight.
+- **Prior art:** the author's earlier app **DANSK**: GitHub Pages + Supabase, SM-2, an Expo Android build via EAS, and quiz, mock-exam, weak-spot and history modes. Reuse what worked there, including auth, Supabase conventions and the EAS setup, and avoid the build pain it went through (Node/Java/Gradle version conflicts, path length, corrupted PNG assets).
+- **Suggested home:** a subdomain of the author's site, served by GitHub Pages.
 
 ## 2. The goal and the pedagogy
 
@@ -19,7 +23,7 @@ The goal is to **read** Japanese, not to write it by hand. Every design decision
 3. **Recognition over production,** with one exception: typing the reading, because recall is what reading actually requires.
 4. **Distractors are realistic mistakes,** not random noise (see §5). A wrong option should be something she might genuinely believe.
 5. **Spaced repetition,** with reviews before new cards and new cards woven in rather than stacked at the end.
-6. **The day rolls over at 04:00.** She goes to bed around 2am, so a 1am session belongs to "today".
+6. **The day rolls over at 04:00.** Sessions often run past midnight, so a 1am session belongs to "today".
 7. **Tone:** dry and a little cheeky, never sycophantic. The blitz end screen in the prototype needles her when she misses her record ("Det var ikke din bedste. Det ved du godt."). Keep that voice.
 
 ## 3. What exists (`prototype/`, `data/`)
@@ -62,7 +66,7 @@ Sources:
 - Add **KanjiVG** (CC BY-SA 3.0) for stroke-order SVGs. These are optional and only shown on the detail view.
 - Keep the build reproducible: a script in `scripts/` writes versioned JSON into `assets/`. Never hand-edit the generated files.
 
-Note: GitHub release assets may be blocked in some sandboxes. If a download fails, ask Lena to fetch the file rather than routing around the block.
+Note: GitHub release assets may be blocked in some sandboxes. If a download fails, ask the owner to fetch the file rather than routing around the block.
 
 ## 4. Scope
 
@@ -173,7 +177,7 @@ Suggested models: **Haiku** (`claude-haiku-5-5`) for per-tap features and **Sonn
 ### 8.5 Graded reading (v2, Sonnet)
 - **What:** a short news-style or slice-of-life passage of 150–300 characters, restricted to known kanji plus up to 3 new ones (highlighted), followed by 3 comprehension questions.
 - **Interaction:** tapping any kanji opens its detail view or adds it to the queue.
-- **Topics:** she likes current affairs, tech and security, travel and anime. Let her pick.
+- **Topics:** let the learner pick (current affairs, tech, travel, anime…).
 
 ### 8.6 Photo to deck (v2, Sonnet with vision)
 - **What:** photograph a sign, menu or label. Claude extracts the text, and the app lists the unknown jōyō kanji with one-tap "add to new queue".
@@ -190,7 +194,7 @@ Suggested models: **Haiku** (`claude-haiku-5-5`) for per-tap features and **Sonn
 
 ## 9. MCP server: Claude ↔ Kanjiskole (v2)
 
-Expose a small **remote MCP server** (a Supabase Edge Function or a tiny Deno or Cloudflare Worker service) with OAuth tied to her Supabase account. That lets Claude in the Claude app work with her data, e.g. "what are my weakest kanji?", "quiz me on today's reviews here in chat", "add the kanji from this article to my queue". Lena would add it as a custom connector.
+Expose a small **remote MCP server** (a Supabase Edge Function or a tiny Deno or Cloudflare Worker service) with OAuth tied to her Supabase account. That lets Claude in the Claude app work with her data, e.g. "what are my weakest kanji?", "quiz me on today's reviews here in chat", "add the kanji from this article to my queue". The learner would add it as a custom connector.
 
 | Tool | Kind | Description |
 |---|---|---|
@@ -207,7 +211,7 @@ Expose a small **remote MCP server** (a Supabase Edge Function or a tiny Deno or
 - Every write goes through `core/` logic, never raw SQL from tool arguments.
 - Rate-limit writes and log tool calls.
 
-## 10. Security and privacy (she is a security engineer; she will check)
+## 10. Security and privacy (it will be checked by someone who does this for a living)
 
 - **Secrets:** no secrets in the client bundle. The Claude key stays in Edge Function secrets, and the Supabase anon key is the only key the client holds.
 - **RLS:** enabled on every table. Write a test per table proving one user can't read or write another's rows.
@@ -228,13 +232,13 @@ Expose a small **remote MCP server** (a Supabase Edge Function or a tiny Deno or
 - **Kanji square:** the 田字格 practice square with dashed centre guides.
 - **Progress map:** the 2,136-cell map stays on the home screen. It's the "how far am I" view she'll actually look at.
 - **Feedback:** answer feedback in Japanese (正解 / その通り / 完璧), the rest of the UI in Danish.
-- **Theme:** follows the system light/dark setting. Her phone uses a Catppuccin Mocha / lavender palette, so make sure dark mode looks deliberate.
+- **Theme:** follows the system light/dark setting; make sure dark mode looks deliberate.
 
 ### Milestones
 
-1. **M1 Core:** `core/` package (kana, distractors, FSRS wrapper, session builder) with tests ported from the prototype, plus the data pipeline v1. Also an importer for the prototype's progress JSON. It's the shape described in §3; ask Lena to export it from the artifact (an export button can be added to the prototype on request).
+1. **M1 Core:** `core/` package (kana, distractors, FSRS wrapper, session builder) with tests ported from the prototype, plus the data pipeline v1. Also an importer for the prototype's progress JSON. It's the shape described in §3; ask the owner to export it from the artifact (an export button can be added to the prototype on request).
 2. **M2 App shell:** Expo app with home, calibration, session, blitz and settings at parity with the prototype, running offline.
-3. **M3 Sync:** Supabase auth, sync and RLS tests; web deploy to `kanji.lenagibson.eu`; Android build through EAS.
+3. **M3 Sync:** Supabase auth, sync and RLS tests; web deploy to the author's site; Android build through EAS.
 4. **M4 Claude v1:** "Hvorfor?", mnemonics and lenient typed judging, with quotas.
 5. **M5 v2:** i+1 sentences, graded reading, MCP server, photo-to-deck, tutor chat.
 
@@ -246,7 +250,7 @@ Expose a small **remote MCP server** (a Supabase Edge Function or a tiny Deno or
 - An i+1 sentence never contains a kanji outside the known set plus the target, enforced server-side.
 - Lighthouse a11y ≥ 95 on web. Every control is reachable by keyboard, and 1–4 / Enter / Esc work.
 
-### Open questions for Lena
+### Open questions (answered since; see DECISIONS.md)
 
 1. Should Kanjiskole share DANSK's Supabase project and account, or get its own?
 2. Danish-only UI, or a Danish/English toggle from day one?

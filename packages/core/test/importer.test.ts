@@ -8,7 +8,7 @@ import { data, local } from "./helpers.ts";
 const d = data();
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/prototype-progress.json", import.meta.url), "utf8")) as unknown;
 
-describe("importPrototype (Lena's real export, 28 Oct 2026)", () => {
+describe("importPrototype (a real prototype export, 28 Oct 2026)", () => {
   const res = importPrototype(fixture, (k) => !!d.get(k), local(2026, 10, 28, 23));
 
   it("imports all ten cards with deterministic ids", () => {

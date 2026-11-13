@@ -17,7 +17,7 @@ What it took to get from a fresh clone to an APK, so the next machine is a check
 ## Clone and install
 
 ```
-git clone -b <branch> https://github.com/Lena-LSG/Kanji kanji
+git clone https://github.com/Lena-LSG/Kanji kanji
 cd kanji
 npm ci
 npm test
@@ -51,11 +51,11 @@ Let EAS generate and keep the keystore: every future update has to be signed wit
 
 ## Android on the device (local, no queue)
 
-Planned for the laptop, which already has the DANSK toolchain:
+For a second machine with a full Android toolchain:
 
 - Android Studio for the SDK, platform tools and an emulator; one JDK, with `JAVA_HOME` pointing at it (check the
   version React Native 0.86 requires before installing).
-- `npx expo run:android` from `app/` builds a development build and installs it over USB (S26 or Xperia, with USB
+- `npx expo run:android` from `app/` builds a development build and installs it over USB (with USB
   debugging on). After that, JS changes arrive through Metro in seconds.
 - A local release APK: `npx expo prebuild -p android`, then `gradlew assembleRelease` in `app/android`.
 

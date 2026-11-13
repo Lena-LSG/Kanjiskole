@@ -18,8 +18,10 @@ export interface Settings {
   uiLang: Lang;
   /** Read the answer aloud when it is revealed (when a Japanese voice exists). */
   autoSpeak: boolean;
+  /** What the home screen calls you; empty means no name. */
+  name: string;
 }
-export const DEFAULT_SETTINGS: Settings = { newPerDay: 10, reviewStyle: "quiz", rolloverHour: DEFAULT_ROLLOVER, uiLang: "da", autoSpeak: true };
+export const DEFAULT_SETTINGS: Settings = { newPerDay: 10, reviewStyle: "quiz", rolloverHour: DEFAULT_ROLLOVER, uiLang: "da", autoSpeak: true, name: "" };
 
 export interface BlitzRun { at: number; score: number; misses: string[] }
 

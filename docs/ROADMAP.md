@@ -4,7 +4,7 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
 
 ## Done
 - M1 core + data pipeline (2026-10-28)
-- M2 app shell, Android + web, offline; first EAS APK running on the S26 (2026-10-28)
+- M2 app shell, Android + web, offline; first EAS APK running on the phone (2026-10-28)
 - English UI option
 - Expo SDK 58 (2026-11-12): closes the URL-parsing advisories
 - Audio (2026-11-12): read-aloud, speaker buttons, listening exercises (item 7); native-speaker recordings for
@@ -29,7 +29,7 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
   `EXPO_PUBLIC_SUPABASE_ANON_KEY` as variables, network access to `*.supabase.co` and `api.supabase.com`.
 - Magic-link auth, events table with RLS, sync queue (union by id), RLS tests per table.
 - Web deploy to kanji.lenagibson.eu (GitHub Pages, SPA 404 fallback, CNAME to lena-lsg.github.io).
-- Local Android toolchain on the laptop (`npx expo run:android`), see DEV-SETUP.md.
+- Local Android toolchain on a second machine (`npx expo run:android`), see DEV-SETUP.md.
 
 ## Feedback from the first evening on the phone (2026-10-28)
 1. **Explain why the right answer is right**, not only what kind of slip the wrong one was, on every exercise type:
@@ -65,7 +65,7 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
    ear once audio exists. Calibration can mark the whole track known in one tap.
 7. **Audio:** the device's Japanese text-to-speech (`expo-speech` on Android, the Web Speech API in the browser),
    offline where the voice is installed. Play the word on the answer screen, a "listen and choose" exercise, and
-   a speaker button on every word in the detail view. Check the S26 and Xperia have a Japanese voice installed.
+   a speaker button on every word in the detail view. Check the phone has a Japanese voice installed.
 
 ## A personal WaniKani replacement
 What WaniKani has that we still lack, in the order to build it:

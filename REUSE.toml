@@ -27,3 +27,17 @@ path = "assets/data/audio.v1.json"
 precedence = "override"
 SPDX-FileCopyrightText = ["Kanji alive", "2026 Lena Gibson"]
 SPDX-License-Identifier = "CC-BY-4.0"
+
+# Screenshots of the app, which show dictionary data.
+[[annotations]]
+path = "docs/screenshots/**"
+precedence = "override"
+SPDX-FileCopyrightText = ["2026 Lena Gibson", "Electronic Dictionary Research and Development Group"]
+SPDX-License-Identifier = "GPL-3.0-only AND CC-BY-SA-4.0"
+
+# The Contributor Covenant, used under its own licence.
+[[annotations]]
+path = "CODE_OF_CONDUCT.md"
+precedence = "override"
+SPDX-FileCopyrightText = "Contributor Covenant contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
