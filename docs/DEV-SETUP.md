@@ -17,7 +17,7 @@ What it took to get from a fresh clone to an APK, so the next machine is a check
 ## Clone and install
 
 ```
-git clone https://github.com/Lena-LSG/Kanji kanji
+git clone https://github.com/Lena-LSG/Kanjiskole kanji
 cd kanji
 npm ci
 npm test

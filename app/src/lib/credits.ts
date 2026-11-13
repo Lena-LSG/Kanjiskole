@@ -15,4 +15,4 @@ export const CREDITS: readonly Credit[] = [
   { name: "FSRS · ts-fsrs", by: "Open Spaced Repetition", role: "srs", licence: "MIT", url: "https://github.com/open-spaced-repetition/ts-fsrs", licenceUrl: "https://opensource.org/license/mit" },
 ];
 
-export const SOURCE_URL = "https://github.com/Lena-LSG/Kanji";
+export const SOURCE_URL = "https://github.com/Lena-LSG/Kanjiskole";

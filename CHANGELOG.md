@@ -29,4 +29,4 @@ The first release: a complete reading trainer for kanji, kana and vocabulary on 
 ### Licence
 - Kanjiskole's code is GPL-3.0-only. Data under CC BY-SA 4.0 / 3.0 and CC BY 4.0 as credited in `CREDITS.md`.
 
-[1.0.0]: https://github.com/Lena-LSG/Kanji/releases/tag/v1.0.0
+[1.0.0]: https://github.com/Lena-LSG/Kanjiskole/releases/tag/v1.0.0

@@ -5,14 +5,14 @@
 **Learn to read Japanese.** Kanji inside real words, kana and vocabulary, on a spaced-repetition schedule that
 starts from what you already know.
 
-[![CI](https://github.com/Lena-LSG/Kanji/actions/workflows/ci.yml/badge.svg)](https://github.com/Lena-LSG/Kanji/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/Lena-LSG/Kanji?color=3B30F0)](https://github.com/Lena-LSG/Kanji/releases/latest)
+[![CI](https://github.com/Lena-LSG/Kanjiskole/actions/workflows/ci.yml/badge.svg)](https://github.com/Lena-LSG/Kanjiskole/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Lena-LSG/Kanjiskole?color=3B30F0)](https://github.com/Lena-LSG/Kanjiskole/releases/latest)
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-3B30F0)](LICENSE)
 ![Android | Web](https://img.shields.io/badge/platform-Android%20%7C%20web-4A5CFF)
 
 <img src="docs/screenshots/overview.png" alt="Kanjiskole on a phone: home, a reading exercise, the kana chart, vocabulary and a word page" width="100%">
 
-**[Download the Android app](https://github.com/Lena-LSG/Kanji/releases/latest)** · [What's new](CHANGELOG.md) · [Credits](CREDITS.md)
+**[Download the Android app](https://github.com/Lena-LSG/Kanjiskole/releases/latest)** · [What's new](CHANGELOG.md) · [Credits](CREDITS.md)
 
 </div>
 
@@ -37,7 +37,7 @@ tracking, no AI calls.
 
 ## Install
 
-- **Android**: download `kanjiskole-vX.Y.Z.apk` from the [latest release](https://github.com/Lena-LSG/Kanji/releases/latest)
+- **Android**: download `kanjiskole-vX.Y.Z.apk` from the [latest release](https://github.com/Lena-LSG/Kanjiskole/releases/latest)
   and open it (allow installs from your browser once). Compare it with the `.sha256` next to it if you like.
   Updates install over the old version and keep your progress.
 - **Web**: the release also has the web build (`-web.zip`), a static site you can host anywhere; or run it locally
