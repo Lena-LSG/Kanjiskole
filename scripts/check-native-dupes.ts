@@ -1,4 +1,6 @@
-// Fails if any native module (expo*, @expo/*, react-native*) is installed in more than one version. Two copies
+import { createRequire } from "node:module";
+// Fails if any native module (expo*, @expo/*, react-native*) is installed in more than one version, or in a
+// version the installed Expo SDK doesn't list. Two copies
 // means JavaScript from one version talking to native code from another: the first SDK 58 APK crashed at start
 // because of exactly this (expo-constants and expo-font, pinned older than what `expo` itself depends on).
 import { existsSync, readFileSync } from "node:fs";
@@ -26,4 +28,20 @@ if (dupes.length) {
   console.error("Pin the direct dependency to the version the SDK package itself uses.");
   process.exit(1);
 }
-console.log(`native modules: ${versions.size}, one version each`);
+
+// Every native module must also be the version the installed Expo SDK was tested with. Transitive ones count
+// too: expo-router accepts any gesture-handler ("*"), and npm picked one newer than SDK 58 supports, which
+// crashed the app at start.
+const satisfies = createRequire(import.meta.url)("semver/functions/satisfies") as (v: string, r: string) => boolean;
+const table = JSON.parse(readFileSync(join(root, "node_modules/expo/bundledNativeModules.json"), "utf8")) as Record<string, string>;
+const off = [...versions].flatMap(([n, v]) => {
+  const want = table[n];
+  const have = [...v][0]!;
+  return want && !satisfies(have, want) ? [`${n}: have ${have}, Expo SDK expects ${want}`] : [];
+});
+if (off.length) {
+  for (const o of off) console.error(o);
+  console.error("Pin it as a direct dependency of app/ at the SDK's version.");
+  process.exit(1);
+}
+console.log(`native modules: ${versions.size}, one version each, all matching the Expo SDK table`);
