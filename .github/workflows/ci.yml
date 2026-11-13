@@ -1,6 +1,6 @@
 name: CI
 on:
-  # Every branch: the work branch is the default branch until M3 brings `main` (docs/SECURITY-REVIEW.md, S10).
+  # Every branch and pull request, so work is checked before it reaches `main`.
   push:
   pull_request:
 

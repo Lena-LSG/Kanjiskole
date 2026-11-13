@@ -21,7 +21,7 @@ Severity is for this app as it is: one user, study progress, no credentials stor
 | S7 | Web privacy | Referrer sent to Google Fonts | Info | **Fixed**: `referrer: no-referrer`. Google still sees the IP on font load; self-hosted subset fonts are an option later |
 | S8 | Dependencies | decode-uri-component (one high, one moderate): a crafted URL can hang the tab or app. Fix needs expo-router 58; a forced override crashes routing (ESM-only fix under a CommonJS caller) | High (DoS only) | **Fixed 2026-11-12** by the SDK 58 upgrade (decode-uri-component is gone from the tree) |
 | S9 | Dependencies | zod 3 and deepmerge inside Expo's build tooling | High / Low | **Fixed 2026-11-12** by SDK 58. Left: minimatch (moderate, build-time), documented in `scripts/audit-accepted.json` |
-| S10 | GitHub | Default branch is the work branch; no branch protection; no required checks | Medium | **Open, Lena**: see "Settings to change" |
+| S10 | GitHub | Default branch is the work branch; no branch protection; no required checks | Medium | **Partly fixed 2026-11-13**: `main` exists. Open, Lena: make it the default, protect it (see "Settings to change") |
 | S11 | Data | `kotobako-data` comes from an unknown npm publisher | Low | Accepted: pinned by integrity hash, parsed as JSON only, never executed. Poisoned content could only mislead (wrong glosses), not run code. Cross-check against jmdict-simplified when GitHub releases are reachable |
 | S12 | App | Error screen shows the raw error message | Info | Accepted: local only, no secrets exist in the app; revisit when tokens exist (M3) |
 | S14 | App | Pronunciation recordings come from a third-party host (`media.kanjialive.com`) and are not hash-verified yet (the host is unreachable from the build sandbox) | Low | Accepted until M3: HTTPS only, the CSP allows that one origin for media and fetch, every file must start with the Ogg signature before it is played or cached, failures fall back to TTS. M3: self-host with SHA-256 per file in `audio.v1.json` |
@@ -36,7 +36,7 @@ numbers, and its event ids are deterministic so a re-import can't duplicate; no 
 ## Settings to change (Lena)
 
 GitHub:
-1. After M3 starts, create `main`, make it the default branch, and work in PRs to it.
+1. Make `main` the default branch (it exists since 2026-11-13) and work in PRs to it.
 2. Branch protection on `main`: require the CI checks (`check`, `web`, `data`), require a PR, block force pushes
    and deletion.
 3. Settings → Code security: secret scanning and **push protection** on (Supabase keys are about to exist).
