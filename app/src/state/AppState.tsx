@@ -3,7 +3,7 @@ import {
   applyEvent, byTime, DEFAULT_ROLLOVER, KanjiData, replay, scheduler,
   type CardState, type Dataset, type KanjiEvent, type ReviewStyle,
 } from "@kanjiskole/core";
-import { randomUUID } from "expo-crypto";
+import { newId } from "../lib/id";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Lang } from "@/i18n";
 import { store } from "@/storage/store";
@@ -94,7 +94,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const record = useCallback((drafts: Draft[]) => {
     const now = Date.now();
-    const evs = drafts.map((d, i) => ({ ...d, id: randomUUID(), at: d.at ?? now + i }) as KanjiEvent);
+    const evs = drafts.map((d, i) => ({ ...d, id: newId(), at: d.at ?? now + i }) as KanjiEvent);
     commit(evs, meta.settings.rolloverHour);
     return evs;
   }, [commit, meta.settings.rolloverHour]);

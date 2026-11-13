@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 // version the installed Expo SDK doesn't list. Two copies
 // means JavaScript from one version talking to native code from another: the first SDK 58 APK crashed at start
 // because of exactly this (expo-constants and expo-font, pinned older than what `expo` itself depends on).
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const root = new URL("..", import.meta.url).pathname;
@@ -34,9 +34,18 @@ if (dupes.length) {
 // crashed the app at start.
 const satisfies = createRequire(import.meta.url)("semver/functions/satisfies") as (v: string, r: string) => boolean;
 const table = JSON.parse(readFileSync(join(root, "node_modules/expo/bundledNativeModules.json"), "utf8")) as Record<string, string>;
+// Deliberate exceptions, each with the reason. Keep this short and remove entries when the reason is gone.
+const exceptions: Record<string, { version: string; why: string }> = {
+  "expo-sqlite": {
+    version: "58.0.10",
+    why: "58.0.11+ is an Expo Modules v2 module, which this SDK patch level does not register (APK crashed with " +
+      "\"Cannot find native module 'ExpoSQLite'\"). 58.0.10 is the last v1 release.",
+  },
+};
 const off = [...versions].flatMap(([n, v]) => {
   const want = table[n];
   const have = [...v][0]!;
+  if (exceptions[n]?.version === have) return [];
   return want && !satisfies(have, want) ? [`${n}: have ${have}, Expo SDK expects ${want}`] : [];
 });
 if (off.length) {
@@ -44,4 +53,19 @@ if (off.length) {
   console.error("Pin it as a direct dependency of app/ at the SDK's version.");
   process.exit(1);
 }
-console.log(`native modules: ${versions.size}, one version each, all matching the Expo SDK table`);
+
+// Expo Modules v2 (`@ExpoModule` annotations) are registered by a compiler plugin that, at this SDK patch level,
+// does not pick them up: such a module is simply missing at runtime. Refuse them until a build proves otherwise.
+const annotated = (dir: string): boolean =>
+  existsSync(dir) &&
+  readdirSync(dir, { withFileTypes: true }).some((e) =>
+    e.isDirectory()
+      ? annotated(join(dir, e.name))
+      : /\.(kt|java)$/.test(e.name) && /^\s*@ExpoModule\b/m.test(readFileSync(join(dir, e.name), "utf8")),
+  );
+const v2 = [...versions.keys()].filter((n) => annotated(join(root, "node_modules", n, "android", "src")));
+if (v2.length) {
+  console.error(`Expo Modules v2 packages (not registered at runtime with this SDK): ${v2.join(", ")}`);
+  process.exit(1);
+}
+console.log(`native modules: ${versions.size}, one version each, all matching the Expo SDK table, no v2 modules`);

@@ -180,3 +180,18 @@ is parsed as text).
   sentences on the detail view are wanted, Lena fetches the jpn-eng pairs file and the pipeline adds it.
 - Known gap: about 30 of the rarest kanji (貞, 璽, 辣…) only have unglossed or rare words. They come last in
   frequency order.
+
+## 2026-11-13 — Native modules: the APK startup crashes
+
+Three causes, found in order: duplicate native module versions (expo-constants, expo-font), transitive native
+modules newer than the SDK (gesture-handler, worklets via expo-router's `*` ranges; forced with root `overrides`),
+and finally, from Lena's logcat, `Cannot find native module 'ExpoSQLite'`. expo-sqlite 58.0.11+ and expo-crypto
+58.0.5+ moved to Expo Modules v2 (`@ExpoModule`), which a compiler plugin registers at build time; at our SDK patch
+level that registration doesn't happen, so the modules are absent at runtime.
+
+- expo-sqlite pinned at 58.0.10, the last v1 release (an exception recorded in `scripts/check-native-dupes.ts`).
+- expo-crypto removed: it only made event ids, which need uniqueness, not secrecy. `app/src/lib/id.ts` uses
+  `crypto.randomUUID` where it exists and a v4 UUID from `Math.random` otherwise.
+- `npm run check:native` now fails on duplicate versions, versions outside the SDK table, and any v2 module.
+  Revisit when moving to an Expo release whose v2 registration is proven by a working APK.
+- Debugging rule: after one failed guess, get logcat first.
