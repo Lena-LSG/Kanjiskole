@@ -3,8 +3,9 @@ import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
 
 export function useKeys(handler: (key: string, e: KeyboardEvent) => void, active = true) {
+  // Always call the latest handler without re-subscribing: updated after each render, never during one.
   const ref = useRef(handler);
-  ref.current = handler;
+  useEffect(() => { ref.current = handler; });
   useEffect(() => {
     if (Platform.OS !== "web" || !active) return;
     const on = (e: KeyboardEvent) => {

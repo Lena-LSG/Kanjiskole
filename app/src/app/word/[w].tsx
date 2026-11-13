@@ -9,7 +9,7 @@ import { Card, Circle, Group, J, T } from "@/components/ui";
 import { t } from "@/i18n";
 import { useKnown } from "@/lib/known";
 import { useKeys } from "@/lib/useKeys";
-import { data, useApp } from "@/state/AppState";
+import { data, useApp, useNow } from "@/state/AppState";
 import { C } from "@/theme";
 
 const leave = () => (router.canGoBack() ? router.back() : router.replace("/words"));
@@ -44,6 +44,7 @@ export default function WordDetail() {
   const spelling = (() => { try { return decodeURIComponent(raw ?? ""); } catch { return raw ?? ""; } })();
   const word = data.word(spelling);
   const { cards } = useApp();
+  const now = useNow();
   const known = useKnown(cards);
   useKeys((k) => { if (k === "Escape") leave(); });
   if (!word) return <Screen><Circle label={t.session.back} onPress={leave}><T size={22}>‹</T></Circle><T>?</T></Screen>;
@@ -52,7 +53,7 @@ export default function WordDetail() {
   const status = wordStatus(word, cards, known);
   const st = stage(card);
   const missing = missingKanji(word, known);
-  const nextDays = card && isStarted(card) ? Math.ceil((card.fsrs.due.getTime() - Date.now()) / 864e5) : null;
+  const nextDays = card && isStarted(card) ? Math.ceil((card.fsrs.due.getTime() - now) / 864e5) : null;
   const kanji = [...new Set([...word.w].filter(isKanji))].map((c) => data.get(c)).filter((k) => !!k);
   const other = word.rs.filter((r) => r !== word.r);
 

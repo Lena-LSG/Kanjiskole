@@ -9,7 +9,7 @@ type Source = { url?: string; sha256?: string; npm?: string; integrity?: string;
 
 const root = new URL("../..", import.meta.url).pathname;
 const cache = join(root, ".cache/sources");
-const sources: Record<string, Source> = JSON.parse(readFileSync(join(root, "scripts/data/sources.json"), "utf8"));
+const sources = JSON.parse(readFileSync(join(root, "scripts/data/sources.json"), "utf8")) as Record<string, Source>;
 mkdirSync(cache, { recursive: true });
 
 const hash = (algo: string, path: string, enc: "hex" | "base64") =>

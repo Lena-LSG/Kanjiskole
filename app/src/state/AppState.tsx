@@ -1,7 +1,7 @@
 // The app's single source of truth: the event log (persisted), the cards derived from it, settings and meta.
 import {
   applyEvent, byTime, DEFAULT_ROLLOVER, KanjiData, replay, scheduler,
-  type CardState, type Dataset, type KanjiEvent, type ReviewStyle,
+  type CardState, type KanjiEvent, type ReviewStyle,
 } from "@kanjiskole/core";
 import { newId } from "../lib/id";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -9,7 +9,7 @@ import type { Lang } from "@/i18n";
 import { store } from "@/storage/store";
 import raw from "../../../assets/data/kanji.v1.json";
 
-export const data = new KanjiData(raw as unknown as Dataset);
+export const data = new KanjiData(raw);
 
 export interface Settings {
   newPerDay: number;
@@ -42,10 +42,11 @@ interface AppState {
   cards: ReadonlyMap<string, CardState>;
   meta: Meta;
   /** Persists events and updates the cards. Returns the stored events. */
-  record(drafts: Draft[]): KanjiEvent[];
+  // Function properties, not methods: they are plain closures and safe to destructure from the context.
+  record: (drafts: Draft[]) => KanjiEvent[];
   /** Merges events that already have ids (import). */
-  ingest(events: KanjiEvent[]): void;
-  setMeta<K extends keyof Meta>(key: K, value: Meta[K]): void;
+  ingest: (events: KanjiEvent[]) => void;
+  setMeta: <K extends keyof Meta>(key: K, value: Meta[K]) => void;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -94,7 +95,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const record = useCallback((drafts: Draft[]) => {
     const now = Date.now();
-    const evs = drafts.map((d, i) => ({ ...d, id: newId(), at: d.at ?? now + i }) as KanjiEvent);
+    const evs = drafts.map((d, i) => ({ ...d, id: newId(), at: d.at ?? now + i }));
     commit(evs, meta.settings.rolloverHour);
     return evs;
   }, [commit, meta.settings.rolloverHour]);
@@ -122,7 +123,7 @@ export function useApp(): AppState {
 
 /** Re-render once a minute, so "due today" and greetings move with the clock (and the 04:00 rollover). */
 export function useNow(intervalMs = 60_000): number {
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), intervalMs);
     return () => clearInterval(id);

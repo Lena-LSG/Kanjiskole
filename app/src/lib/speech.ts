@@ -32,7 +32,9 @@ export function useJapaneseVoice(): boolean {
   const [ok, setOk] = useState(voiceId !== null);
   useEffect(() => {
     let live = true;
-    japaneseVoice().then((v) => { voiceId = v; if (live) setOk(v !== null); });
+    japaneseVoice()
+      .then((v) => { voiceId = v; if (live) setOk(v !== null); })
+      .catch((e: unknown) => console.warn("Kanjiskole: could not list voices", e));
     return () => { live = false; };
   }, []);
   return ok;
@@ -43,7 +45,7 @@ export function say(text: string) {
   if (voiceId === null || !text) return;
   try {
     if (player) { try { player.remove(); } catch { /* already gone */ } player = null; }
-    Speech.stop();
+    void Speech.stop();
     Speech.speak(text, { language: "ja-JP", voice: voiceId, rate: 0.9 });
   } catch (e) {
     console.warn("Kanjiskole: text-to-speech failed", e); // audio is a nicety: never let it break a session
@@ -54,7 +56,7 @@ let player: AudioPlayer | null = null;
 const unavailable = new Set<string>(); // failed this session: don't ask the server again until the app restarts
 
 function stopAll() {
-  try { Speech.stop(); } catch { /* nothing playing */ }
+  Speech.stop().catch(() => undefined); // nothing playing
   if (player) { try { player.remove(); } catch { /* already gone */ } player = null; }
 }
 

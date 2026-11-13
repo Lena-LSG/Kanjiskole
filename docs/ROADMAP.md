@@ -16,9 +16,12 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
   kana and listening come with audio, item 7)
 - Curriculum (2026-11-12): JLPT order with parts first, prompts limited to words she can read, difficulty that
   ramps with each card (item 5 below, apart from vocabulary cards)
+- Kana and vocabulary hubs at kanji quality, extra new cards in every track, stats per track (2026-11-13)
+- **Release 1.0.0 (2026-11-13)**: licence audit (GPL-3.0 code, REUSE-compliant, measured third-party notices,
+  About screen with credits), second security pass (S15–S19), ESLint with type-aware and React hooks rules
 
 ## Security
-- Review of 2026-11-12: `docs/SECURITY-REVIEW.md`. Fixed S1–S7; Lena's settings (GitHub branch protection, push
+- Review of 2026-11-12, re-checked 2026-11-13: `docs/SECURITY-REVIEW.md`. Fixed S1–S9 and S15–S19; Lena's settings (GitHub branch protection, push
   protection, 2FA; Supabase sign-ups off and redirect allowlist) are listed there; M3 must meet its threat model.
 
 ## Next: M3 sync

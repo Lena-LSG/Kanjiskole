@@ -1,3 +1,4 @@
+// Statistics per track (kanji, kana, words): accuracy, streak, reviews per day, stages, weakest cards and leeches.
 import {
   inTrack, KANA, kanaItem, leeches, perDay, retention, stagesOf, streak, studyDay, vocabOrder, weakest, wordKey, wordOf, type Track,
 } from "@kanjiskole/core";

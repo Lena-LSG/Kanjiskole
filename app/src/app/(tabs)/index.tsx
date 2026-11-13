@@ -1,3 +1,4 @@
+// Home: kanji-first. Today's kanji, the kana and vocabulary tracks, accuracy, streak, and the map of every kanji.
 import { dueKana, dueWords, inTrack, KANA, isStarted, retention, streak, vocabProgress } from "@kanjiskole/core";
 import { router } from "expo-router";
 import { useMemo } from "react";

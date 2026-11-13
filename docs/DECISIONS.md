@@ -213,3 +213,21 @@ Lena: the tracks worked, but couldn't show progress or their full lists, and onl
 - Statistik has a Kanji/Kana/Ord switch; stats functions take a track filter (kanji stays the default).
 - Home stays kanji-first; kana and vocabulary get cards (what's waiting, progress) under today's numbers.
 - The kanji list got the same level and stage filters.
+
+## 2026-11-13 — Release 1.0.0: licences, lint, release pipeline
+
+- **Licence**: Lena chose GPL-3.0 for the code (`GPL-3.0-only`). Everything inside the app is permissive (MIT, ISC,
+  BSD-3-Clause, OFL for the fonts), so it combines cleanly; the data keeps its CC licences as a separate work.
+- **Attribution that travels**: `npm run notices` measures what ships (both bundles' source maps, autolinked
+  native modules, bundled fonts) and writes `THIRD-PARTY-NOTICES.md` plus a JSON the About screen reads. CI fails if
+  it goes stale; a test fails if a non-permissive licence gets in. Human credits: `CREDITS.md`, and the same list in
+  the app (`app/src/lib/credits.ts`), including the EDRDG's required acknowledgement.
+- **REUSE**: `REUSE.toml` + `LICENSES/` give every file a copyright and licence; `reuse lint` runs in CI.
+- **Lint**: ESLint with typescript-eslint's type-aware rules and the React hooks rules (v7, including the compiler
+  rules). It found real issues: exercises made in `useMemo(…, [])`, which React may recompute (now lazy state),
+  refs read during render, floating promises, IndexedDB rejections without an Error. All fixed; lint is clean and
+  runs in CI. No formatter: the codebase has a consistent style and reformatting would bury the history.
+- **CI** had never run (it was limited to `main`); it now runs on every push.
+- **Releases**: tag `vX.Y.Z` with notes in `docs/releases/`. The workflow checks the tag against `app.json`, copies
+  the EAS APK onto the release with its SHA-256 (EAS links expire), and attaches the web build and the notices.
+  Android `versionCode` = major·10000 + minor·100 + patch.

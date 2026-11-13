@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calibrationDue, replay } from "../src/cards.ts";
 import { maturity, planFor, readableWords, readingBreakdown, wordDifficulty } from "../src/curriculum.ts";
-import type { KanjiEvent } from "../src/events.ts";
 import { makeExercise } from "../src/exercises.ts";
 import { seeded } from "../src/rng.ts";
 import { data, id, local } from "./helpers.ts";
@@ -70,7 +69,7 @@ describe("planFor", () => {
   });
 
   it("a calibrated card is treated as established and may use hard words", () => {
-    const c = replay([{ id: id(), t: "calibrate", k: "十", at, due: calibrationDue(at, seeded(1)) } as KanjiEvent]).get("十");
+    const c = replay([{ id: id(), t: "calibrate", k: "十", at, due: calibrationDue(at, seeded(1)) }]).get("十");
     expect(maturity(c)).toBe(2);
     const p = planFor(d.get("十")!, c, d, known);
     expect(p.similar).toBe(true);

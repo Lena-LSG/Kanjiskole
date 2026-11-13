@@ -6,7 +6,7 @@ import { importPrototype, parsePrototype } from "../src/importer.ts";
 import { data, local } from "./helpers.ts";
 
 const d = data();
-const fixture = JSON.parse(readFileSync(new URL("./fixtures/prototype-progress.json", import.meta.url), "utf8"));
+const fixture = JSON.parse(readFileSync(new URL("./fixtures/prototype-progress.json", import.meta.url), "utf8")) as unknown;
 
 describe("importPrototype (Lena's real export, 28 Oct 2026)", () => {
   const res = importPrototype(fixture, (k) => !!d.get(k), local(2026, 10, 28, 23));

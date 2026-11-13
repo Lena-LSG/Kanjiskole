@@ -1,10 +1,11 @@
+// Settings: daily new kanji, review style, day rollover, language, audio, import from the prototype, export, About.
 import { importPrototype, studyDay } from "@kanjiskole/core";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Screen } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
-import { Card, Ghost, Primary, T } from "@/components/ui";
+import { Card, Ghost, Group, Primary, Row, T } from "@/components/ui";
 import { LANGS, t } from "@/i18n";
 import { pickText, saveText } from "@/lib/files";
 import { useJapaneseVoice } from "@/lib/speech";
@@ -100,11 +101,9 @@ export default function Settings() {
         <Ghost label={t.settings.exportRun} onPress={runExport} />
       </Card>
 
-      <Card style={{ gap: 8 }}>
-        <T v="bold" size={17}>{t.settings.about}</T>
-        <T size={13} color={C.muted} style={{ lineHeight: 19 }}>{t.settings.aboutText}</T>
-        <T size={12} color={C.faint}>{t.misc.dataVersion(data.version)}</T>
-      </Card>
+      <Group>
+        <Row label={t.settings.about} onPress={() => router.push("/about")} last />
+      </Group>
     </Screen>
   );
 }

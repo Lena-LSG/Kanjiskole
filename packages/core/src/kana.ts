@@ -63,7 +63,7 @@ export function toKana(src: string): string {
 }
 
 /** What a typed answer is compared on: hiragana, no spaces or separators. */
-export const normalizeReading = (s: string): string => toHira(s).replace(/[\s・.\-]/g, "");
+export const normalizeReading = (s: string): string => toHira(s).replace(/[\s・.-]/g, "");
 
 /** Typed input (romaji or kana) to the comparable form. */
 export const normalizeAnswer = (input: string): string => normalizeReading(toKana(input.trim()));

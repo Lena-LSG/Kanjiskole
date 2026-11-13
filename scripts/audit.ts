@@ -8,7 +8,7 @@ type Vuln = { severity: string; via: Via[] };
 
 const root = new URL("..", import.meta.url).pathname;
 const accepted: { id: string; expires: string; reason: string }[] =
-  JSON.parse(readFileSync(new URL("audit-accepted.json", import.meta.url), "utf8")).accepted;
+  (JSON.parse(readFileSync(new URL("audit-accepted.json", import.meta.url), "utf8")) as { accepted: { id: string; expires: string; reason: string }[] }).accepted;
 const today = new Date().toISOString().slice(0, 10);
 
 let raw: string;
@@ -17,7 +17,7 @@ try {
 } catch (e) {
   raw = (e as { stdout?: string }).stdout ?? "";
 }
-const vulns: Record<string, Vuln> = JSON.parse(raw).vulnerabilities ?? {};
+const vulns: Record<string, Vuln> = (JSON.parse(raw) as { vulnerabilities?: Record<string, Vuln> }).vulnerabilities ?? {};
 
 const failures: string[] = [];
 for (const [name, v] of Object.entries(vulns)) {

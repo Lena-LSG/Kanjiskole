@@ -1,9 +1,9 @@
-import { createRequire } from "node:module";
 // Fails if any native module (expo*, @expo/*, react-native*) is installed in more than one version, or in a
 // version the installed Expo SDK doesn't list. Two copies
 // means JavaScript from one version talking to native code from another: the first SDK 58 APK crashed at start
 // because of exactly this (expo-constants and expo-font, pinned older than what `expo` itself depends on).
 import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { join } from "node:path";
 
 const root = new URL("..", import.meta.url).pathname;

@@ -1,3 +1,4 @@
+// The kanji list: search by kanji, reading or meaning, filter by JLPT level and stage, open a kanji's page.
 import { stage } from "@kanjiskole/core";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";

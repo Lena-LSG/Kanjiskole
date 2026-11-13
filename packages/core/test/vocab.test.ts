@@ -61,7 +61,7 @@ describe("word exercises", () => {
 
   it("a wrong spelling is never a real word with the same reading", () => {
     const at = local(2026, 11, 1);
-    const established = replay([{ id: id(), t: "calibrate", k: "w:時間", at, due: at + 864e5 } as KanjiEvent]).get("w:時間");
+    const established = replay([{ id: id(), t: "calibrate", k: "w:時間", at, due: at + 864e5 }]).get("w:時間");
     for (const w of words.slice(0, 120)) {
       for (let s = 0; s < 3; s++) {
         const ex = makeWordExercise(w, established, d, seeded(s));

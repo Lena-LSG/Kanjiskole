@@ -5,8 +5,9 @@ import manifest from "../../../assets/data/audio.v1.json";
 
 const files = manifest.files as Record<string, string>;
 
-export const hasRecording = (w: Word) => w.w in files;
-export const recordingName = (w: Word) => (w.w in files ? `${files[w.w]}${manifest.ext}` : null);
+// Own keys only: `in` would also find "constructor" and friends on the prototype.
+export const hasRecording = (w: Word) => Object.hasOwn(files, w.w);
+export const recordingName = (w: Word) => (Object.hasOwn(files, w.w) ? `${files[w.w]}${manifest.ext}` : null);
 export const recordingUrl = (name: string) => `${manifest.base}${encodeURIComponent(name)}`;
 
 /** Ogg pages start with "OggS": a cheap check that a download is audio and not an error page. */

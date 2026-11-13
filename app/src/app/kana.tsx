@@ -153,7 +153,11 @@ export default function Kana() {
     return h.started === h.total ? "kata" : "hira";
   });
   const [picked, setPicked] = useState<KanaItem | null>(null);
-  useKeys((k) => { if (k === "Escape") (picked ? setPicked(null) : leave()); });
+  useKeys((k) => {
+    if (k !== "Escape") return;
+    if (picked) setPicked(null);
+    else leave();
+  });
 
   const p = useMemo(() => kanaProgress(cards, script), [cards, script]);
   const counts = useMemo(() => stagesOf(cards, KANA.filter((x) => x.script === script).map((x) => x.k)), [cards, script]);

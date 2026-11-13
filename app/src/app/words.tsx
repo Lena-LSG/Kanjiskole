@@ -8,7 +8,7 @@ import { router } from "expo-router";
 import { memo, useMemo, useState } from "react";
 import { FlatList, Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Chips, Column, Lock, Hero, HeroBand, Meter, StageBar, StageDot, StartOrExtra, TodaySplit } from "@/components/Track";
+import { Chips, Column, Lock, Hero, HeroBand, StageBar, StageDot, StartOrExtra, TodaySplit } from "@/components/Track";
 import { Card, J, T } from "@/components/ui";
 import { t } from "@/i18n";
 import { useKnown } from "@/lib/known";

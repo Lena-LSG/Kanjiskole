@@ -15,7 +15,7 @@ function open(): Promise<IDBDatabase> {
       d.createObjectStore("meta");
     };
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.onerror = () => reject(req.error ?? new Error("IndexedDB open failed"));
   });
   return db;
 }
@@ -23,14 +23,14 @@ function open(): Promise<IDBDatabase> {
 const done = (tx: IDBTransaction) =>
   new Promise<void>((resolve, reject) => {
     tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error);
+    tx.onerror = () => reject(tx.error ?? new Error("IndexedDB transaction failed"));
+    tx.onabort = () => reject(tx.error ?? new Error("IndexedDB transaction aborted"));
   });
 
 const request = <T>(r: IDBRequest<T>) =>
   new Promise<T>((resolve, reject) => {
     r.onsuccess = () => resolve(r.result);
-    r.onerror = () => reject(r.error);
+    r.onerror = () => reject(r.error ?? new Error("IndexedDB request failed"));
   });
 
 type Row = { id: string; at: number; event: KanjiEvent; synced: 0 | 1 };
@@ -64,6 +64,7 @@ export const store: Store = {
     const tx = (await open()).transaction("meta");
     const os = tx.objectStore("meta");
     const [keys, values] = await Promise.all([request(os.getAllKeys()), request(os.getAll())]);
-    return Object.fromEntries(keys.map((k, i) => [String(k), values[i]]));
+    // Meta keys are always strings (setMeta's key).
+    return Object.fromEntries(keys.map((k, i) => [k as string, values[i]]));
   },
 };

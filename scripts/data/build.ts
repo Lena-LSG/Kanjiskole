@@ -10,7 +10,8 @@ import { similarity } from "./similar.ts";
 const VERSION = "1.1.0";
 const root = new URL("../..", import.meta.url).pathname;
 const src = (p: string) => join(root, ".cache/sources", p);
-const readJson = (p: string) => JSON.parse(readFileSync(src(p), "utf8"));
+// The inputs are pinned by hash (sources.json), so their shape is trusted here rather than validated.
+const readJson = <T>(p: string): T => JSON.parse(readFileSync(src(p), "utf8")) as T;
 
 // ---------- sources ----------
 
@@ -18,19 +19,18 @@ type KD = {
   strokes: number; grade: number | null; freq: number | null; jlpt_new: number | null;
   meanings: string[]; readings_on: string[] | null; readings_kun: string[] | null;
 };
-const kanjidata: Record<string, KD> = readJson("kanjidata.json");
+const kanjidata = readJson<Record<string, KD>>("kanjidata.json");
 
 type Furi = {
   versions: Record<string, string>;
   runs: Record<string, Record<string, [number, number]>>;
   kanji: Record<string, Record<string, [number, number]>>;
 };
-const furi: Furi = readJson("furifont/package/data/dictionary.json");
+const furi = readJson<Furi>("furifont/package/data/dictionary.json");
 
 type KotoVocab = { word: string; reading: string; meanings: string[]; jlpt: string | null };
 type KotoKanji = { char: string; strokes: string[] };
-const koto: { version: string; datasets: { vocab: KotoVocab[]; kanji: KotoKanji[] } } =
-  readJson("kotobako/package/kotobako-static.json");
+const koto = readJson<{ version: string; datasets: { vocab: KotoVocab[]; kanji: KotoKanji[] } }>("kotobako/package/kotobako-static.json");
 
 // Jōyō since 2010 uses 𠮟 塡 頰 剝; dictionaries mix them with 叱 填 頬 剥. Spell everything the way kanji-data does.
 const SPELL: Record<string, string> = { "𠮟": "叱", "填": "塡", "頬": "頰", "剝": "剥" };

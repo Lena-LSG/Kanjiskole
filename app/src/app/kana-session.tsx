@@ -4,7 +4,7 @@ import {
   preview, toKana, type CardState, type Grade, type Item, type KanaExercise, type Script,
 } from "@kanjiskole/core";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Screen } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
@@ -32,7 +32,7 @@ export default function KanaSession() {
     const left = Math.max(0, NEW_PER_DAY.kana - newToday(events, now, roll, (k) => !!kanaItem(k)));
     return interleave(due, newKana(cards, left, script), "quiz");
   });
-  const total = useRef(q.length).current;
+  const [total] = useState(q.length);
   const [done, setDone] = useState(0);
   const [step, setStep] = useState(0);
   const head = q[0];
@@ -96,13 +96,13 @@ function Quiz({ bar, fresh, itemK, card, onSettle }: {
 }) {
   const item = kanaItem(itemK)!;
   const { meta } = useApp();
-  const ex = useMemo(() => makeKanaExercise(item, card, Math.random, { audio: hasVoice() }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [ex] = useState(() => makeKanaExercise(item, card, Math.random, { audio: hasVoice() }));
   useEffect(() => { if (ex.kind === "kana-listen") say(item.k); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const start = useRef(Date.now()).current;
+  const [start] = useState(() => Date.now());
   const [res, setRes] = useState<{ ok: boolean; answer: string; at: number } | null>(null);
   const [typed, setTyped] = useState("");
-  const pv = useMemo(() => preview(card, Date.now()), [card]);
-  const right = useMemo(() => t.session.right[Math.floor(Math.random() * t.session.right.length)]!, []);
+  const pv = useMemo(() => preview(card, start), [card, start]);
+  const [right] = useState(() => t.session.right[Math.floor(Math.random() * t.session.right.length)]!);
 
   const go = (g: Grade, ok = res?.ok ?? false) => onSettle(g, ex, ok, res?.answer, (res?.at ?? Date.now()) - start);
   useEffect(() => { if (res && meta.settings.autoSpeak && ex.kind !== "kana-listen") say(item.k); }, [res !== null]); // eslint-disable-line react-hooks/exhaustive-deps

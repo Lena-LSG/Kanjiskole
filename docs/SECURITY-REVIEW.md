@@ -1,4 +1,4 @@
-# Security review, 2026-11-12
+# Security review, 2026-11-12 (re-checked 2026-11-13)
 
 Scope: everything that exists before M3 (the Expo app on Android and web, `packages/core`, the data pipeline, CI,
 dependencies, GitHub and Expo configuration), plus a threat model for M3 (Supabase, sync, MCP) so that work starts
@@ -73,7 +73,24 @@ Controls M3 must have, each with a test:
   validation and scheduler as the app), never raw SQL from tool arguments; no destructive tools; tool calls logged;
   text from the database returned to Claude is labelled as data.
 
+## Re-check 2026-11-13 (release 1.0.0)
+
+Scope: everything added since the first review (audio, kana and vocabulary tracks, the hubs, word pages, About,
+the native-module fixes), plus a fresh pass over CI, the git history and the shipped permissions.
+
+| ID | Area | Finding | Severity | Status |
+|---|---|---|---|---|
+| S15 | CI | The workflow ran only on pushes to `main`, which doesn't exist: no push had ever been checked | Medium | **Fixed**: runs on every push and pull request |
+| S16 | App | Recording lookup used `word in files`, which also matches inherited keys (`constructor`) | Low | **Fixed**: `Object.hasOwn`. A test pins the audio manifest to one HTTPS host and plain file names (no `/`, no `..`) |
+| S17 | Android | expo-audio's library manifest merges in `MODIFY_AUDIO_SETTINGS` | Info | Accepted: a normal-level permission (no prompt, no data access) needed for playback. No microphone: the expo-audio config plugin, which would add `RECORD_AUDIO`, is not used. Verified from the generated app manifest and every library manifest |
+| S18 | App | New URL parameters: `/word/<w>`, `extra` on all three sessions, `script` on kana | Low | Safe by construction: safe decode for `/word`, `extraNew` clamps to 1–30 (tested), `script` is an allowlist of two values |
+| S19 | Supply chain | Licences of what ships were unverified | Info | **Fixed**: `npm run notices` measures what ships (source maps of both bundles, autolinked native modules, fonts); a test fails if anything non-permissive gets in; CI fails if the list is stale |
+
+Also checked, no finding: no secrets anywhere in the git history (token, key and JWT patterns); user input never
+reaches a regular expression unescaped (kanji and word search); About opens only constant URLs; `npm audit` shows only
+the documented minimatch entry; the app requests INTERNET and nothing else that needs consent.
+
 ## Re-check
 
-At the Expo SDK 58 upgrade (S8), when M3 lands (the controls above), and whenever `scripts/audit-accepted.json`
+At the next Expo SDK upgrade, when M3 lands (the controls above), and whenever `scripts/audit-accepted.json`
 entries expire (CI enforces that).

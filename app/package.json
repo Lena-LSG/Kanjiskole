@@ -6,7 +6,7 @@
     "@expo-google-fonts/shippori-mincho-b1": "0.4.1",
     "@expo-google-fonts/zen-kaku-gothic-new": "0.4.2",
     "@expo/metro-runtime": "58.0.17",
-    "@kanjiskole/core": "0.1.0",
+    "@kanjiskole/core": "1.0.0",
     "expo": "58.0.21",
     "expo-audio": "58.0.10",
     "expo-constants": "58.0.16",
@@ -43,5 +43,6 @@
     "export:web": "expo export -p web",
     "typecheck": "tsc --noEmit"
   },
-  "private": true
+  "private": true,
+  "license": "GPL-3.0-only"
 }

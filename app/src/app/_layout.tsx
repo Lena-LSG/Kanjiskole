@@ -1,3 +1,4 @@
+// Root layout: fonts, the app state provider, language, the stack of screens, and the error boundary.
 import { Stack, type ErrorBoundaryProps } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
@@ -31,6 +32,7 @@ function Gate() {
       <Stack.Screen name="settings" options={{ presentation: "modal" }} />
       <Stack.Screen name="kanji/[k]" />
       <Stack.Screen name="word/[w]" />
+      <Stack.Screen name="about" />
     </Stack>
   );
 }

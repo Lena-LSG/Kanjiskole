@@ -4,7 +4,7 @@ import {
   newToday, newWords, preview, toKana, wordOf, type CardState, type Explanation, type Grade, type Item, type WordExercise,
 } from "@kanjiskole/core";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Screen } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
@@ -34,7 +34,7 @@ export default function WordsSession() {
     const left = Math.max(0, NEW_PER_DAY.words - newToday(events, now, roll, (k) => k.startsWith("w:")));
     return interleave(dueWords(cards, now, roll), newWords(cards, data, known, left), "quiz");
   });
-  const total = useRef(q.length).current;
+  const [total] = useState(q.length);
   const [done, setDone] = useState(0);
   const [step, setStep] = useState(0);
   const head = q[0];
@@ -97,7 +97,7 @@ function Intro({ bar, wordK, onDone }: { bar: React.ReactNode; wordK: string; on
   const word = wordOf(wordK, data)!;
   const { meta } = useApp();
   const voice = useJapaneseVoice();
-  useEffect(() => { if ((voice || hasRecording(word)) && meta.settings.autoSpeak) speakWord(word); }, [voice]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if ((voice || hasRecording(word)) && meta.settings.autoSpeak) void speakWord(word); }, [voice]); // eslint-disable-line react-hooks/exhaustive-deps
   useKeys((key, e) => { if (key === "Enter" || key === " ") { e.preventDefault(); onDone(); } else if (key === "Escape") leave(); });
   return (
     <Screen>
@@ -120,16 +120,16 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
 }) {
   const word = wordOf(wordK, data)!;
   const { meta } = useApp();
-  const ex = useMemo(() => makeWordExercise(word, card, data, Math.random, { audio: hasVoice() || hasRecording(word) }), []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (ex.kind === "word-listen") speakWord(word); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const start = useRef(Date.now()).current;
+  const [ex] = useState(() => makeWordExercise(word, card, data, Math.random, { audio: hasVoice() || hasRecording(word) }));
+  useEffect(() => { if (ex.kind === "word-listen") void speakWord(word); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [start] = useState(() => Date.now());
   const [res, setRes] = useState<{ ok: boolean; answer: string; at: number; alt?: boolean } | null>(null);
   const [typed, setTyped] = useState("");
-  const pv = useMemo(() => preview(card, Date.now()), [card]);
-  const right = useMemo(() => t.session.right[Math.floor(Math.random() * t.session.right.length)]!, []);
+  const pv = useMemo(() => preview(card, start), [card, start]);
+  const [right] = useState(() => t.session.right[Math.floor(Math.random() * t.session.right.length)]!);
 
   const go = (g: Grade, ok = res?.ok ?? false) => onSettle(g, ex, ok, res?.answer, (res?.at ?? Date.now()) - start);
-  useEffect(() => { if (res && meta.settings.autoSpeak && ex.kind !== "word-listen") speakWord(word); }, [res !== null]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (res && meta.settings.autoSpeak && ex.kind !== "word-listen") void speakWord(word); }, [res !== null]); // eslint-disable-line react-hooks/exhaustive-deps
   const choose = (o: { label: string; ok: boolean }) => { if (!res) setRes({ ok: o.ok, answer: o.label, at: Date.now() }); };
   const submit = () => {
     if (res || !typed.trim() || ex.kind !== "word-type") return;
@@ -170,7 +170,7 @@ function Quiz({ bar, fresh, wordK, card, onSettle }: {
       <Card navy style={{ alignItems: "center", gap: 10, paddingVertical: 28 }}>
         <T size={15} color={C.onNavyMuted}>{q}</T>
         {ex.kind === "word-listen" ? (
-          <Pressable accessibilityRole="button" accessibilityLabel={t.audio.again} onPress={() => speakWord(word)}
+          <Pressable accessibilityRole="button" accessibilityLabel={t.audio.again} onPress={() => void speakWord(word)}
             style={({ pressed }) => ({ width: 120, height: 120, borderRadius: 60, backgroundColor: C.accent, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.8 : 1 })}>
             <T v="black" size={44}>▶</T>
           </Pressable>

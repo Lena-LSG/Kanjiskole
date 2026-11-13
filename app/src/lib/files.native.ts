@@ -1,3 +1,4 @@
+// Pick a text file and share one (import and export) on Android.
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";

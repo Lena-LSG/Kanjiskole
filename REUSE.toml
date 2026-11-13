@@ -1,0 +1,29 @@
+# Machine-readable licensing (https://reuse.software). `reuse lint` must pass; CI checks it.
+version = 1
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Lena Gibson"
+SPDX-License-Identifier = "GPL-3.0-only"
+
+# Generated from EDRDG dictionaries (KANJIDIC2, JMdict, RADKFILE/KRADFILE) and the other sources in CREDITS.md.
+[[annotations]]
+path = ["assets/data/kanji.v1.json", "docs/prototype/kanjiskole.html"]
+precedence = "override"
+SPDX-FileCopyrightText = ["Electronic Dictionary Research and Development Group", "2026 Lena Gibson"]
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+# Stroke paths from KanjiVG.
+[[annotations]]
+path = "assets/data/strokes.v1.json"
+precedence = "override"
+SPDX-FileCopyrightText = ["Ulrich Apel and the KanjiVG contributors", "2026 Lena Gibson"]
+SPDX-License-Identifier = "CC-BY-SA-3.0"
+
+# Which words have a Kanji alive recording, and the file names.
+[[annotations]]
+path = "assets/data/audio.v1.json"
+precedence = "override"
+SPDX-FileCopyrightText = ["Kanji alive", "2026 Lena Gibson"]
+SPDX-License-Identifier = "CC-BY-4.0"

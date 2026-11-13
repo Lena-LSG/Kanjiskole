@@ -1,5 +1,5 @@
 // Kanji detail: readings, every word with her own hit rate, stroke order, her mnemonic.
-import { isLeech, isStarted, stage, type ReviewEvent } from "@kanjiskole/core";
+import { isLeech, isStarted, stage } from "@kanjiskole/core";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
@@ -10,24 +10,27 @@ import { Screen } from "@/components/Screen";
 import { Card, Circle, Ghost, Group, J, KanjiSquare, LinkButton, T } from "@/components/ui";
 import { t } from "@/i18n";
 import { useKeys } from "@/lib/useKeys";
-import { data, useApp } from "@/state/AppState";
+import { data, useApp, useNow } from "@/state/AppState";
 import { C, R } from "@/theme";
 
 const leave = () => (router.canGoBack() ? router.back() : router.replace("/kanji"));
 
 let strokesCache: Record<string, string[]> | undefined;
+/** Stroke paths for one kanji: null while the (large, lazily loaded) stroke file arrives, [] if it has none. */
 function useStrokes(k: string): string[] | null {
-  const [s, setS] = useState<string[] | null>(strokesCache?.[k] ?? null);
+  const [all, setAll] = useState(strokesCache);
   useEffect(() => {
-    if (strokesCache) { setS(strokesCache[k] ?? []); return; }
+    if (all) return;
     let live = true;
-    import("../../../../assets/data/strokes.v1.json").then((m) => {
-      strokesCache = (m.default ?? m) as unknown as Record<string, string[]>;
-      if (live) setS(strokesCache[k] ?? []);
-    });
+    import("../../../../assets/data/strokes.v1.json")
+      .then((m) => {
+        strokesCache = m.default ?? m;
+        if (live) setAll(strokesCache);
+      })
+      .catch((e: unknown) => console.error("Kanjiskole: could not load stroke data", e));
     return () => { live = false; };
-  }, [k]);
-  return s;
+  }, [all]);
+  return all ? all[k] ?? [] : null;
 }
 
 function StrokeOrder({ paths }: { paths: string[] }) {
@@ -52,6 +55,7 @@ export default function KanjiDetail() {
   const k = (() => { try { return decodeURIComponent(raw ?? ""); } catch { return raw ?? ""; } })();
   const kanji = data.get(k);
   const { cards, events, meta, setMeta, record } = useApp();
+  const now = useNow();
   const card = cards.get(k);
   const strokes = useStrokes(k);
   const [editing, setEditing] = useState(false);
@@ -65,7 +69,7 @@ export default function KanjiDetail() {
       if (e.t !== "review" || e.k !== k || !e.word) continue;
       const r = m.get(e.word) ?? { ok: 0, n: 0 };
       r.n++;
-      if (e.ok) { r.ok++; r.lastWrong = undefined; } else r.lastWrong = (e as ReviewEvent).answer ?? "?";
+      if (e.ok) { r.ok++; r.lastWrong = undefined; } else r.lastWrong = (e).answer ?? "?";
       m.set(e.word, r);
     }
     return m;
@@ -75,7 +79,7 @@ export default function KanjiDetail() {
   const st = stage(card);
   const words = data.wordsOf(kanji);
   const shown = allWords ? words : words.slice(0, 6);
-  const nextDays = card && isStarted(card) ? Math.ceil((card.fsrs.due.getTime() - Date.now()) / 864e5) : null;
+  const nextDays = card && isStarted(card) ? Math.ceil((card.fsrs.due.getTime() - now) / 864e5) : null;
   const mnemonic = meta.mnemonics[k];
   // KANJIDIC lists う.まれる and うま.れる separately; one per spoken form is enough here.
   const kunUnique = [...new Map(kanji.kun.map((r) => [r.replace(/[.-]/g, ""), r])).values()];

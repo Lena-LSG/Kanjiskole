@@ -1,0 +1,58 @@
+name: Release
+# On a version tag: publish a GitHub release with the notes from docs/releases/<tag>.md, the APK they link to (EAS
+# artifacts expire, so it's copied here for good) with its SHA-256, and the web build.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release; nothing else
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+      - name: Check the tag matches the app version
+        run: |
+          app=$(node -p "require('./app/app.json').expo.version")
+          [ "v$app" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME, app.json $app"; exit 1; }
+
+      - name: Fetch the APK named in the release notes
+        run: |
+          notes="docs/releases/$GITHUB_REF_NAME.md"
+          url=$(grep -oE 'https://expo\.dev/artifacts/eas/[A-Za-z0-9_-]+\.apk' "$notes" | head -1)
+          [ -n "$url" ] || { echo "no EAS APK link in $notes"; exit 1; }
+          name="kanjiskole-$GITHUB_REF_NAME.apk"
+          curl -fsSL --proto '=https' "$url" -o "$name"
+          # A real APK is a zip with a manifest; an error page is not.
+          unzip -l "$name" AndroidManifest.xml > /dev/null
+          sha256sum "$name" > "$name.sha256"
+
+      - name: Build the web app
+        run: |
+          npx expo export -p web
+          (cd dist && zip -qr "../../kanjiskole-$GITHUB_REF_NAME-web.zip" .)
+        working-directory: app
+        env: { EXPO_NO_TELEMETRY: "1", CI: "1" }
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "Kanjiskole ${GITHUB_REF_NAME#v}" \
+            --notes-file "docs/releases/$GITHUB_REF_NAME.md" \
+            "kanjiskole-$GITHUB_REF_NAME.apk" "kanjiskole-$GITHUB_REF_NAME.apk.sha256" "kanjiskole-$GITHUB_REF_NAME-web.zip" \
+            THIRD-PARTY-NOTICES.md

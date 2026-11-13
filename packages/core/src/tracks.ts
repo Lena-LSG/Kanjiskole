@@ -61,7 +61,7 @@ export function kanaChart(script: Script): KanaSection[] {
   const ext = items.filter((x) => x.group === "extended");
   if (ext.length) {
     const rows: (KanaItem | null)[][] = [];
-    for (let i = 0; i < ext.length; i += 4) rows.push([...ext.slice(i, i + 4), ...Array(Math.max(0, 4 - ext.slice(i, i + 4).length)).fill(null)]);
+    for (let i = 0; i < ext.length; i += 4) rows.push([...ext.slice(i, i + 4), ...Array<null>(Math.max(0, 4 - ext.slice(i, i + 4).length)).fill(null)]);
     sections.push({ group: "extended", cols: 4, rows });
   }
   return sections;

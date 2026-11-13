@@ -1,3 +1,4 @@
+// A progress ring (accuracy on the home screen).
 import Svg, { Circle } from "react-native-svg";
 import { C } from "@/theme";
 

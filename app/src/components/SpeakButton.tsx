@@ -1,3 +1,4 @@
+// The speaker button: a native recording when there is one, otherwise the device's Japanese voice.
 import { Pressable } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { t } from "@/i18n";

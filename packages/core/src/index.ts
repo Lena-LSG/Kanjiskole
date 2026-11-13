@@ -1,3 +1,4 @@
+// The public API of @kanjiskole/core: all the learning logic, no UI.
 export * from "./blitz.ts";
 export * from "./cards.ts";
 export * from "./curriculum.ts";

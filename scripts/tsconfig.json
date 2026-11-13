@@ -1,5 +1,5 @@
 {
   "extends": "../packages/core/tsconfig.json",
   "compilerOptions": { "types": ["node"] },
-  "include": ["data", "audit.ts", "check-native-dupes.ts", "../packages/core/src"]
+  "include": ["data", "audit.ts", "check-native-dupes.ts", "notices.ts", "../packages/core/src"]
 }
