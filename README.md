@@ -50,8 +50,9 @@ every check above on every push, plus both bundles, the data build and a REUSE l
 
 ## Releases
 
-Tag `vX.Y.Z` with the APK link in `docs/releases/vX.Y.Z.md`. The release workflow publishes the notes, the APK
-(with its SHA-256) and the web build on GitHub. History: `CHANGELOG.md`.
+Put the notes, with the EAS APK link, in `docs/releases/vX.Y.Z.md`, then push the tag `vX.Y.Z` or run the Release
+workflow by hand with that version (it creates the tag). It checks the version against `app.json` and publishes the
+notes, the APK with its SHA-256 and the web build on GitHub. History: `CHANGELOG.md`.
 
 ## Licence
 

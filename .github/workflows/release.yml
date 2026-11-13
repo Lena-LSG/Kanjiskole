@@ -1,9 +1,15 @@
 name: Release
-# On a version tag: publish a GitHub release with the notes from docs/releases/<tag>.md, the APK they link to (EAS
-# artifacts expire, so it's copied here for good) with its SHA-256, and the web build.
+# On a version tag, or run by hand with the version: publish a GitHub release (creating the tag on this commit) with
+# the notes from docs/releases/<tag>.md, the APK they link to (EAS artifacts expire, so it's copied here for good)
+# with its SHA-256, and the web build.
 on:
   push:
     tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. v1.0.0 (must match app.json)"
+        required: true
 
 permissions:
   contents: read
@@ -24,17 +30,22 @@ jobs:
       - run: npm ci
       - run: npm test
 
-      - name: Check the tag matches the app version
+      - name: Work out the tag and check it matches the app version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
+          tag="${INPUT_VERSION:-$GITHUB_REF_NAME}"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "not a version tag: $tag"; exit 1; }
           app=$(node -p "require('./app/app.json').expo.version")
-          [ "v$app" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME, app.json $app"; exit 1; }
+          [ "v$app" = "$tag" ] || { echo "tag $tag, app.json $app"; exit 1; }
+          echo "TAG=$tag" >> "$GITHUB_ENV"
 
       - name: Fetch the APK named in the release notes
         run: |
-          notes="docs/releases/$GITHUB_REF_NAME.md"
+          notes="docs/releases/$TAG.md"
           url=$(grep -oE 'https://expo\.dev/artifacts/eas/[A-Za-z0-9_-]+\.apk' "$notes" | head -1)
           [ -n "$url" ] || { echo "no EAS APK link in $notes"; exit 1; }
-          name="kanjiskole-$GITHUB_REF_NAME.apk"
+          name="kanjiskole-$TAG.apk"
           curl -fsSL --proto '=https' "$url" -o "$name"
           # A real APK is a zip with a manifest; an error page is not.
           unzip -l "$name" AndroidManifest.xml > /dev/null
@@ -43,7 +54,7 @@ jobs:
       - name: Build the web app
         run: |
           npx expo export -p web
-          (cd dist && zip -qr "../../kanjiskole-$GITHUB_REF_NAME-web.zip" .)
+          (cd dist && zip -qr "../../kanjiskole-$TAG-web.zip" .)
         working-directory: app
         env: { EXPO_NO_TELEMETRY: "1", CI: "1" }
 
@@ -51,8 +62,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            --title "Kanjiskole ${GITHUB_REF_NAME#v}" \
-            --notes-file "docs/releases/$GITHUB_REF_NAME.md" \
-            "kanjiskole-$GITHUB_REF_NAME.apk" "kanjiskole-$GITHUB_REF_NAME.apk.sha256" "kanjiskole-$GITHUB_REF_NAME-web.zip" \
+          gh release create "$TAG" --target "$GITHUB_SHA" \
+            --title "Kanjiskole ${TAG#v}" \
+            --notes-file "docs/releases/$TAG.md" \
+            "kanjiskole-$TAG.apk" "kanjiskole-$TAG.apk.sha256" "kanjiskole-$TAG-web.zip" \
             THIRD-PARTY-NOTICES.md
