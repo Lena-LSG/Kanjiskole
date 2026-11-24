@@ -1,12 +1,14 @@
+// Settings: daily new kanji, review style, day rollover, language, audio, import from the prototype, export, About.
 import { importPrototype, studyDay } from "@kanjiskole/core";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Screen } from "@/components/Screen";
 import { TopBar } from "@/components/TopBar";
-import { Card, Ghost, Primary, T } from "@/components/ui";
+import { Card, Ghost, Group, Primary, Row, T } from "@/components/ui";
 import { LANGS, t } from "@/i18n";
 import { pickText, saveText } from "@/lib/files";
+import { useJapaneseVoice } from "@/lib/speech";
 import { useKeys } from "@/lib/useKeys";
 import { data, useApp } from "@/state/AppState";
 import { store } from "@/storage/store";
@@ -14,7 +16,7 @@ import { C, R } from "@/theme";
 
 const leave = () => (router.canGoBack() ? router.back() : router.replace("/"));
 
-function Segmented<V extends string | number>({ options, value, onChange }: { options: [V, string][]; value: V; onChange: (v: V) => void }) {
+function Segmented<V extends string | number | boolean>({ options, value, onChange }: { options: [V, string][]; value: V; onChange: (v: V) => void }) {
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
       {options.map(([v, label]) => {
@@ -34,6 +36,7 @@ export default function Settings() {
   const { meta, setMeta, ingest, events } = useApp();
   const [paste, setPaste] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const voice = useJapaneseVoice();
   useKeys((k) => { if (k === "Escape") leave(); });
 
   const runImport = (text: string) => {
@@ -69,9 +72,18 @@ export default function Settings() {
         <T v="bold" size={17} style={{ marginTop: 8 }}>{t.settings.style}</T>
         <Segmented options={[["quiz", t.settings.quiz], ["flash", t.settings.flash]]} value={meta.settings.reviewStyle}
           onChange={(v) => setMeta("settings", { ...meta.settings, reviewStyle: v })} />
+        <T v="bold" size={17} style={{ marginTop: 8 }}>{t.settings.name}</T>
+        <TextInput value={meta.settings.name} onChangeText={(v) => setMeta("settings", { ...meta.settings, name: v.slice(0, 40) })}
+          placeholder={t.settings.namePlaceholder} placeholderTextColor={C.faint} accessibilityLabel={t.settings.name} autoCorrect={false}
+          style={{ height: 48, borderRadius: R.small, borderWidth: 1, borderColor: C.outline, color: C.ink, paddingHorizontal: 14, fontSize: 16 }} />
         <T v="bold" size={17} style={{ marginTop: 8 }}>{t.settings.language}</T>
         <Segmented options={LANGS.map((l) => [l, t.settings.languages[l]] as [typeof l, string])} value={meta.settings.uiLang}
           onChange={(l) => setMeta("settings", { ...meta.settings, uiLang: l })} />
+        <T v="bold" size={17} style={{ marginTop: 8 }}>{t.audio.setting}</T>
+        {voice ? (
+          <Segmented options={[[true, t.audio.on], [false, t.audio.off]] as [boolean, string][]} value={meta.settings.autoSpeak}
+            onChange={(v) => setMeta("settings", { ...meta.settings, autoSpeak: v })} />
+        ) : <T size={14} color={C.muted} style={{ lineHeight: 20 }}>{t.audio.noVoice}</T>}
       </Card>
 
       <Card style={{ gap: 12 }}>
@@ -93,11 +105,9 @@ export default function Settings() {
         <Ghost label={t.settings.exportRun} onPress={runExport} />
       </Card>
 
-      <Card style={{ gap: 8 }}>
-        <T v="bold" size={17}>{t.settings.about}</T>
-        <T size={13} color={C.muted} style={{ lineHeight: 19 }}>{t.settings.aboutText}</T>
-        <T size={12} color={C.faint}>{t.misc.dataVersion(data.version)}</T>
-      </Card>
+      <Group>
+        <Row label={t.settings.about} onPress={() => router.push("/about")} last />
+      </Group>
     </Screen>
   );
 }

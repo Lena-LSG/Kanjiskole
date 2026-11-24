@@ -1,0 +1,36 @@
+name: Bug
+description: Something in the app doesn't work as it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead. Screenshots help.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where
+      options: [Android, Web]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Settings → About and licences shows it (e.g. 1.0.0).
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and OS / browser
+      placeholder: e.g. Android 16, or Firefox 150
+  - type: textarea
+    id: log
+    attributes:
+      label: Crash log (Android, if it crashes)
+      description: "`adb logcat -d > crash.txt` after the crash, then attach the file or paste the part with FATAL EXCEPTION."
+      render: text

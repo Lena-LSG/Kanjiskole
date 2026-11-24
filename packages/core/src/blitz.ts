@@ -9,7 +9,7 @@ export interface PoolEntry { k: string; weight: number }
 
 /** Her own started kanji, weighted to lapses and young cards; the 300 most frequent if she has under 20. */
 export function blitzPool(cards: Map<string, CardState>, data: KanjiData): PoolEntry[] {
-  const mine = [...cards.values()].filter(isStarted);
+  const mine = [...cards.values()].filter((c) => isStarted(c) && data.get(c.k)); // kanji only
   if (mine.length >= 20) {
     return mine.map((c) => ({
       k: c.k,

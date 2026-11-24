@@ -46,10 +46,46 @@ export const da = {
     mapLabel: (m: number, y: number, l: number, u: number) => `Fremskridt: ${n(m)} modne, ${n(y)} unge, ${n(l)} i gang, ${n(u)} ikke set`,
     legend: { mature: "Moden", young: "Ung", learning: "I gang", unseen: "Ikke set" },
     calibrate: "Kalibrér: hvilke kan du allerede?",
+    kana: "Kana: hiragana og katakana",
+    vocab: "Ordforråd: ord du kan læse",
     weakest: "Dine svageste kanji",
     settings: "Indstillinger",
     profile: "Indstillinger",
     search: "Søg kanji",
+  },
+  track: {
+    summary: (due: number, fresh: number) => (due + fresh ? `${n(due)} repetitioner · ${n(fresh)} nye` : "Intet venter. Tag nogle ekstra nye, hvis du har lyst."),
+    start: "Start session",
+    extra: "5 ekstra nye",
+    extraSub: "ud over dagens kvote",
+    reviews: "Repetition",
+    dueToday: "forfalder i dag",
+    fresh: "Nye",
+    ofToday: (x: number) => `af ${n(x)} i dag`,
+    progress: "Fremskridt",
+    open: "Åbn",
+    kanaTitle: "Kana",
+    kanaSub: (started: number, total: number) => `${n(started)} af ${n(total)} tegn i gang`,
+    wordsTitle: "Ordforråd",
+    wordsSub: (started: number, unlocked: number) => `${n(started)} i gang · ${n(unlocked)} låst op`,
+    dueBadge: (x: number) => (x ? `${n(x)} venter` : "Intet venter"),
+    tracks: { kanji: "Kanji", kana: "Kana", words: "Ord" },
+    tracksLabel: "Vis statistik for",
+    nextDue: "Næste repetition",
+    lapses: "Fejl",
+  },
+  about: {
+    title: "Om appen",
+    own: "Fri software under GNU General Public License v3. Du må bruge, studere, dele og ændre den; ændrede udgaver skal deles på samme vilkår.",
+    source: "Kildekode",
+    credits: "Bygget på",
+    edrdg: "Denne app bruger materiale fra JMdict, KANJIDIC2, RADKFILE og KRADFILE i overensstemmelse med licensbestemmelserne fra Electronic Dictionary Research and Development Group.",
+    roles: { dict: "Kanji og ordbog", components: "Kanjikomponenter", strokes: "Stregrækkefølge", audio: "Udtaleoptagelser", jlpt: "JLPT-niveauer", furigana: "Furigana", glosses: "Engelske betydninger", fonts: "Skrifttyper", srs: "Repetitionsalgoritme" },
+    website: "Hjemmeside",
+    dataLicence: "Appens ordbogs- og stregdata er afledt af ovenstående og deles under samme licens (CC BY-SA 4.0, stregerne CC BY-SA 3.0). Optagelserne hentes fra Kanji alive første gang, de afspilles.",
+    packages: "Open source-pakker",
+    packagesHelp: "Alt, hvad der ligger inde i appen. Tryk for at se licensteksten.",
+    noText: "Pakken indeholder ingen licensfil; licensen er den angivne.",
   },
   tabs: { home: "Hjem", kanji: "Kanji", stats: "Statistik", blitz: "Lyntest", nav: "Hovedmenu" },
   session: {
@@ -92,7 +128,24 @@ export const da = {
     type: { label: "Skriv læsningen", q: "Skriv læsningen (romaji eller kana)" },
   },
   why: "Hvorfor?",
-  explain(e: Explanation): { tag: string; text: string } {
+  howRead: "Sådan læses det",
+  audio: {
+    play: "Afspil udtale",
+    listenQ: "Lyt: hvad hørte du?",
+    listenLabel: "Lyt",
+    again: "Hør igen",
+    setting: "Læs svaret op",
+    on: "Til",
+    off: "Fra",
+    noVoice: "Ingen japansk stemme fundet. Installér en under Android-indstillinger → Tekst-til-tale, så kommer lyden.",
+  },
+  part: {
+    rendaku: (k: string, base: string, r: string) => `${k} er ${base}, men stemmes til ${r} inde i ordet (rendaku).`,
+    sokuon: (k: string, base: string, r: string) => `${k} er ${base}, men forkortes til ${r} foran næste lyd (lille っ).`,
+    whole: (k: string, r: string) => `${k} læses ${r} som ét hele, ikke kanji for kanji.`,
+    irregular: (k: string, r: string) => `${k} læses ${r} her: en særlig læsning, der hører til ordet.`,
+  },
+  explain(e: Explanation, m: (k: string) => string = () => ""): { tag: string; text: string } {
     switch (e.code) {
       case "rendaku":
         return e.missed
@@ -117,13 +170,15 @@ export const da = {
         };
       case "rare-reading":
         return { tag: "Sjælden læsning", text: "Den læsning findes, men ikke som svaret på dette ord. Tag den almindelige." };
-      case "lookalike":
-        return {
-          tag: "Forveksling",
-          text: e.shared.length
-            ? `${e.chosen} og ${e.target} deler ${e.shared.join(" + ")}. Se på det, der er forskelligt.`
-            : `${e.chosen} og ${e.target} ligner hinanden. Det er pointen. Se igen.`,
-        };
+      case "lookalike": {
+        const both = `${e.chosen} (${m(e.chosen)}) og ${e.target} (${m(e.target)})`;
+        const diff = e.chosenOnly.length || e.targetOnly.length
+          ? ` Forskellen: ${e.target} har ${e.targetOnly.join(" + ") || "ingen ekstra dele"}, ${e.chosen} har ${e.chosenOnly.join(" + ") || "ingen ekstra dele"}.`
+          : " Delene er de samme, så se på stregernes længde og placering.";
+        return { tag: "Forveksling", text: `${both} ligner hinanden${e.shared.length ? `: begge har ${e.shared.join(" + ")}` : ""}.${diff}` };
+      }
+      case "other-kanji":
+        return { tag: "Anden kanji", text: `Du valgte ${e.chosen}, som betyder "${m(e.chosen)}". ${e.target} betyder "${m(e.target)}".` };
     }
   },
   intervals(days: number) {
@@ -167,6 +222,8 @@ export const da = {
     done: "Du er igennem alle 2.136. Imponerende, eller også var du ikke ærlig.",
   },
   kanji: {
+    allLevels: "Alle",
+    allStages: "Alle stadier",
     search: "Kanji, læsning eller betydning",
     results: (x: number) => `${n(x)} kanji`,
     none: "Ingen kanji passer. Prøv romaji, kana eller engelsk.",
@@ -187,7 +244,75 @@ export const da = {
     queued: "I køen",
     leech: "Igle: du har fejlet denne 8+ gange. En huskeregel hjælper.",
   },
+  kana: {
+    sections: { basic: "Grundtegn", dakuten: "Dakuten og handakuten", yoon: "Sammensatte lyde (yōon)", extended: "Udvidede, til låneord" } as Record<string, string>,
+    count: (started: number, total: number) => `${n(started)}/${n(total)}`,
+    tapHint: "Tryk på et tegn for at høre det og se, hvordan det går.",
+    lookalikes: "Forveksles med",
+    sounds: (r: string) => `udtales ${r}`,
+    close: "Luk",
+    solid: "sidder fast",
+    title: "Kana",
+    intro: "Hiragana og katakana, med samme repetition som kanji. Nye kana får lette svarmuligheder; forvekslingerne (シ/ツ, ソ/ン) kommer, når de sidder fast.",
+    hira: "Hiragana",
+    kata: "Katakana",
+    progress: (started: number, total: number, solid: number) => `${n(started)} af ${n(total)} i gang · ${n(solid)} sidder fast`,
+    due: (x: number) => (x ? `${n(x)} til repetition i dag` : "Intet til repetition i dag"),
+    practise: "Øv",
+    know: "Jeg kan dem allerede",
+    knowConfirm: (script: string) => `Markér alle ${script} som kendt? De bliver tjekket med indtastning om 3–4 uger, så vær ærlig.`,
+    knowYes: "Ja, markér dem",
+    knowNo: "Fortryd",
+    marked: (x: number) => `${n(x)} kana markeret som kendt.`,
+    readQ: "Hvordan udtales den?",
+    pickQ: "Hvilken kana er det?",
+    typeQ: "Skriv udtalen (romaji)",
+    readLabel: "Læs",
+    pickLabel: "Find kanaen",
+    typeLabel: "Skriv",
+    newKana: "Ny kana",
+    isRead: (k: string, r: string) => `${k} udtales ${r}.`,
+    mixup: (a: string, ar: string, b: string, br: string) => `${a} (${ar}) og ${b} (${br}) forveksles tit. Se på strøgenes retning.`,
+    picked: (p: string, pr: string, k: string, kr: string) => `Du valgte ${p}, som udtales ${pr}. Den rigtige er ${k}: ${kr}.`,
+    placeholder: "fx shi",
+    done: "Alle kana er i gang. Nu er det repetition, der tæller.",
+    chart: "Oversigt",
+  },
+  vocab: {
+    search: "Ord, læsning eller betydning",
+    results: (x: number) => `${n(x)} ord`,
+    noMatch: "Ingen ord passer. Prøv romaji, kana eller engelsk.",
+    status: { all: "Alle", active: "I gang", ready: "Klar", locked: "Låst", learning: "I gang", young: "Ung", mature: "Moden" } as Record<string, string>,
+    level: (l: number | null) => (l ? `N${l}` : "Uden niveau"),
+    allLevels: "Alle niveauer",
+    levels: "Niveauer",
+    levelLine: (started: number, unlocked: number, total: number) => `${n(started)} i gang · ${n(unlocked)} låst op · ${n(total)} ord`,
+    lockedBy: "Låses op, når du kender ",
+    kanjiIn: "Kanji i ordet",
+    notLearned: "ikke lært endnu",
+    alsoRead: "Læses også",
+    unlockedOf: (u: number, total: number) => `${n(u)} af ${n(total)} ord låst op`,
+    title: "Ordforråd",
+    intro: "Et ord bliver et kort, når du kender alle dets kanji: de letteste og mest almindelige først. Ordforrådet vokser altså ud af det, du allerede kan læse.",
+    progress: (started: number, unlocked: number, total: number) => `${n(started)} i gang · ${n(unlocked)} låst op af ${n(total)}`,
+    due: (x: number) => (x ? `${n(x)} til repetition i dag` : "Intet til repetition i dag"),
+    none: "Ingen ord er låst op endnu. Lær eller kalibrér nogle kanji først.",
+    next: "Næste ord",
+    practise: "Øv",
+    meaningQ: "Hvad betyder det?",
+    readQ: "Hvordan læses det?",
+    typeQ: "Skriv læsningen (romaji eller kana)",
+    spellQ: "Hvordan staves det?",
+    meaningLabel: "Betydning",
+    readLabel: "Læsning",
+    typeLabel: "Skriv",
+    spellLabel: "Stavning",
+    newWord: "Nyt ord",
+    means: (w: string, g: string) => `${w} betyder "${g}".`,
+    spelled: (w: string, r: string) => `${r} staves ${w}.`,
+  },
   stats: {
+    none: "Ingen at vise endnu.",
     title: "Statistik",
     perDay: "Repetitioner, 14 dage",
     retention: "Træfsikkerhed, 30 dage",
@@ -200,6 +325,8 @@ export const da = {
   },
   settings: {
     title: "Indstillinger",
+    name: "Dit navn",
+    namePlaceholder: "Valgfrit, til hilsenen på forsiden",
     perDay: "Nye kanji pr. dag",
     style: "Repetitioner som",
     quiz: "Blandet quiz",
@@ -213,9 +340,7 @@ export const da = {
     exportTitle: "Eksportér alt",
     exportHelp: "Hele din historik som JSON. Du er aldrig låst inde.",
     exportRun: "Eksportér",
-    about: "Om data",
-    aboutText:
-      "Kanji, ord og komponenter fra KANJIDIC2, JMdict, RADKFILE og KRADFILE, ejet af Electronic Dictionary Research and Development Group og brugt under gruppens licens (CC BY-SA 4.0). Stregrækkefølge fra KanjiVG (CC BY-SA 3.0).",
+    about: "Om appen og licenser",
     language: "Sprog",
     languages: { da: "Dansk", en: "English" },
     close: "Luk",

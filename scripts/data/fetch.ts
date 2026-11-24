@@ -3,13 +3,13 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { extname, join } from "node:path";
 
 type Source = { url?: string; sha256?: string; npm?: string; integrity?: string; file?: string };
 
 const root = new URL("../..", import.meta.url).pathname;
 const cache = join(root, ".cache/sources");
-const sources: Record<string, Source> = JSON.parse(readFileSync(join(root, "scripts/data/sources.json"), "utf8"));
+const sources = JSON.parse(readFileSync(join(root, "scripts/data/sources.json"), "utf8")) as Record<string, Source>;
 mkdirSync(cache, { recursive: true });
 
 const hash = (algo: string, path: string, enc: "hex" | "base64") =>
@@ -18,7 +18,7 @@ const hash = (algo: string, path: string, enc: "hex" | "base64") =>
 for (const [name, s] of Object.entries(sources)) {
   if (name.startsWith("$")) continue;
   if (s.url) {
-    const out = join(cache, `${name}.json`);
+    const out = join(cache, `${name}${extname(new URL(s.url).pathname) || ".json"}`);
     if (!existsSync(out) || hash("sha256", out, "hex") !== s.sha256) {
       execFileSync("curl", ["-sSfL", "--retry", "3", "-o", out, s.url], { stdio: "inherit" });
     }

@@ -8,7 +8,7 @@
       meta tag). Scripts only from this origin; styles inline because react-native-web injects them at runtime;
       fonts from Google Fonts. Add the Supabase origin to connect-src in M3, nothing broader.
     -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: https://media.kanjialive.com; connect-src 'self' https://media.kanjialive.com; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'; manifest-src 'self'" />
     <meta name="referrer" content="no-referrer" />
     <title>%WEB_TITLE%</title>
     <!-- react-native-web's recommended reset -->

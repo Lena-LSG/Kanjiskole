@@ -11,10 +11,10 @@ export const FAMILIES = {
 
 export function useAppFonts(): boolean {
   const [loaded, error] = useFonts({
-    ShipporiMinchoB1_500Medium: require("@expo-google-fonts/shippori-mincho-b1/500Medium/ShipporiMinchoB1_500Medium.ttf"),
-    ZenKakuGothicNew_400Regular: require("@expo-google-fonts/zen-kaku-gothic-new/400Regular/ZenKakuGothicNew_400Regular.ttf"),
-    ZenKakuGothicNew_700Bold: require("@expo-google-fonts/zen-kaku-gothic-new/700Bold/ZenKakuGothicNew_700Bold.ttf"),
-    ZenKakuGothicNew_900Black: require("@expo-google-fonts/zen-kaku-gothic-new/900Black/ZenKakuGothicNew_900Black.ttf"),
+    ShipporiMinchoB1_500Medium: require("@expo-google-fonts/shippori-mincho-b1/500Medium/ShipporiMinchoB1_500Medium.ttf") as number, // Metro asset id
+    ZenKakuGothicNew_400Regular: require("@expo-google-fonts/zen-kaku-gothic-new/400Regular/ZenKakuGothicNew_400Regular.ttf") as number, // Metro asset id
+    ZenKakuGothicNew_700Bold: require("@expo-google-fonts/zen-kaku-gothic-new/700Bold/ZenKakuGothicNew_700Bold.ttf") as number, // Metro asset id
+    ZenKakuGothicNew_900Black: require("@expo-google-fonts/zen-kaku-gothic-new/900Black/ZenKakuGothicNew_900Black.ttf") as number, // Metro asset id
   });
   return loaded || !!error; // on a font error, render with system fonts rather than not at all
 }

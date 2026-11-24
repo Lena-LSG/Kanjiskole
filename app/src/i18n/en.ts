@@ -47,10 +47,46 @@ export const en: Strings = {
     mapLabel: (m: number, y: number, l: number, u: number) => `Progress: ${n(m)} mature, ${n(y)} young, ${n(l)} learning, ${n(u)} not seen`,
     legend: { mature: "Mature", young: "Young", learning: "Learning", unseen: "Not seen" },
     calibrate: "Calibrate: which do you already know?",
+    kana: "Kana: hiragana and katakana",
+    vocab: "Vocabulary: words you can read",
     weakest: "Your weakest kanji",
     settings: "Settings",
     profile: "Settings",
     search: "Search kanji",
+  },
+  track: {
+    summary: (due: number, fresh: number) => (due + fresh ? `${n(due)} reviews · ${n(fresh)} new` : "Nothing waiting. Take some extra new ones if you like."),
+    start: "Start session",
+    extra: "5 extra new",
+    extraSub: "beyond today's allowance",
+    reviews: "Reviews",
+    dueToday: "due today",
+    fresh: "New",
+    ofToday: (x: number) => `of ${n(x)} today`,
+    progress: "Progress",
+    open: "Open",
+    kanaTitle: "Kana",
+    kanaSub: (started: number, total: number) => `${n(started)} of ${n(total)} started`,
+    wordsTitle: "Vocabulary",
+    wordsSub: (started: number, unlocked: number) => `${n(started)} started · ${n(unlocked)} unlocked`,
+    dueBadge: (x: number) => (x ? `${n(x)} waiting` : "Nothing waiting"),
+    tracks: { kanji: "Kanji", kana: "Kana", words: "Words" },
+    tracksLabel: "Show statistics for",
+    nextDue: "Next review",
+    lapses: "Lapses",
+  },
+  about: {
+    title: "About",
+    own: "Free software under the GNU General Public License v3. You may use, study, share and change it; changed versions must be shared on the same terms.",
+    source: "Source code",
+    credits: "Built on",
+    edrdg: "This app uses material from JMdict, KANJIDIC2, RADKFILE and KRADFILE in conformance with the licence provisions of the Electronic Dictionary Research and Development Group.",
+    roles: { dict: "Kanji and dictionary", components: "Kanji components", strokes: "Stroke order", audio: "Pronunciation recordings", jlpt: "JLPT levels", furigana: "Furigana", glosses: "English meanings", fonts: "Fonts", srs: "Scheduling algorithm" },
+    website: "Website",
+    dataLicence: "The app's dictionary and stroke data are derived from the above and shared under the same licence (CC BY-SA 4.0, strokes CC BY-SA 3.0). Recordings are fetched from Kanji alive the first time they play.",
+    packages: "Open-source packages",
+    packagesHelp: "Everything inside the app. Tap for the licence text.",
+    noText: "The package ships no licence file; the licence is as declared.",
   },
   tabs: { home: "Home", kanji: "Kanji", stats: "Stats", blitz: "Blitz", nav: "Main menu" },
   session: {
@@ -93,7 +129,24 @@ export const en: Strings = {
     type: { label: "Type the reading", q: "Type the reading (romaji or kana)" },
   },
   why: "Why?",
-  explain(e: Explanation): { tag: string; text: string } {
+  howRead: "How it's read",
+  audio: {
+    play: "Play pronunciation",
+    listenQ: "Listen: what did you hear?",
+    listenLabel: "Listen",
+    again: "Hear again",
+    setting: "Read the answer aloud",
+    on: "On",
+    off: "Off",
+    noVoice: "No Japanese voice found. Install one under Android settings → Text-to-speech and audio will appear.",
+  },
+  part: {
+    rendaku: (k: string, base: string, r: string) => `${k} is ${base}, but voices to ${r} inside the word (rendaku).`,
+    sokuon: (k: string, base: string, r: string) => `${k} is ${base}, but shortens to ${r} before the next sound (small っ).`,
+    whole: (k: string, r: string) => `${k} is read ${r} as a whole, not kanji by kanji.`,
+    irregular: (k: string, r: string) => `${k} is read ${r} here: a special reading that belongs to the word.`,
+  },
+  explain(e: Explanation, m: (k: string) => string = () => ""): { tag: string; text: string } {
     switch (e.code) {
       case "rendaku":
         return e.missed
@@ -118,13 +171,15 @@ export const en: Strings = {
         };
       case "rare-reading":
         return { tag: "Rare reading", text: "That reading exists, but not as the answer for this word. Go with the usual one." };
-      case "lookalike":
-        return {
-          tag: "Mix-up",
-          text: e.shared.length
-            ? `${e.chosen} and ${e.target} share ${e.shared.join(" + ")}. Look at what's different.`
-            : `${e.chosen} and ${e.target} look alike. That's the point. Look again.`,
-        };
+      case "lookalike": {
+        const both = `${e.chosen} (${m(e.chosen)}) and ${e.target} (${m(e.target)})`;
+        const diff = e.chosenOnly.length || e.targetOnly.length
+          ? ` The difference: ${e.target} has ${e.targetOnly.join(" + ") || "no extra parts"}, ${e.chosen} has ${e.chosenOnly.join(" + ") || "no extra parts"}.`
+          : " The parts are the same, so look at the length and position of the strokes.";
+        return { tag: "Mix-up", text: `${both} look alike${e.shared.length ? `: both have ${e.shared.join(" + ")}` : ""}.${diff}` };
+      }
+      case "other-kanji":
+        return { tag: "Other kanji", text: `You picked ${e.chosen}, which means "${m(e.chosen)}". ${e.target} means "${m(e.target)}".` };
     }
   },
   intervals(days: number) {
@@ -168,6 +223,8 @@ export const en: Strings = {
     done: "You're through all 2,136. Impressive, or you weren't honest.",
   },
   kanji: {
+    allLevels: "All",
+    allStages: "All stages",
     search: "Kanji, reading or meaning",
     results: (x: number) => `${n(x)} kanji`,
     none: "No kanji match. Try romaji, kana or English.",
@@ -188,7 +245,75 @@ export const en: Strings = {
     queued: "Queued",
     leech: "Leech: you've failed this 8+ times. A mnemonic helps.",
   },
+  kana: {
+    sections: { basic: "Basic", dakuten: "Dakuten and handakuten", yoon: "Combined sounds (yōon)", extended: "Extended, for loanwords" },
+    count: (started: number, total: number) => `${n(started)}/${n(total)}`,
+    tapHint: "Tap a character to hear it and see how it's going.",
+    lookalikes: "Easily confused with",
+    sounds: (r: string) => `sounds ${r}`,
+    close: "Close",
+    solid: "solid",
+    title: "Kana",
+    intro: "Hiragana and katakana, with the same reviews as kanji. New kana get easy options; the mix-ups (シ/ツ, ソ/ン) come once they stick.",
+    hira: "Hiragana",
+    kata: "Katakana",
+    progress: (started: number, total: number, solid: number) => `${n(started)} of ${n(total)} started · ${n(solid)} solid`,
+    due: (x: number) => (x ? `${n(x)} to review today` : "Nothing to review today"),
+    practise: "Practise",
+    know: "I already know these",
+    knowConfirm: (script: string) => `Mark all ${script} as known? They'll be checked by typing in 3–4 weeks, so be honest.`,
+    knowYes: "Yes, mark them",
+    knowNo: "Cancel",
+    marked: (x: number) => `${n(x)} kana marked as known.`,
+    readQ: "How is it pronounced?",
+    pickQ: "Which kana is it?",
+    typeQ: "Type the sound (romaji)",
+    readLabel: "Read",
+    pickLabel: "Find the kana",
+    typeLabel: "Type",
+    newKana: "New kana",
+    isRead: (k: string, r: string) => `${k} is pronounced ${r}.`,
+    mixup: (a: string, ar: string, b: string, br: string) => `${a} (${ar}) and ${b} (${br}) get mixed up a lot. Look at the direction of the strokes.`,
+    picked: (p: string, pr: string, k: string, kr: string) => `You picked ${p}, which is ${pr}. The right one is ${k}: ${kr}.`,
+    placeholder: "e.g. shi",
+    done: "Every kana is started. Now it's the reviews that count.",
+    chart: "Overview",
+  },
+  vocab: {
+    search: "Word, reading or meaning",
+    results: (x: number) => `${n(x)} words`,
+    noMatch: "No words match. Try romaji, kana or English.",
+    status: { all: "All", active: "Started", ready: "Ready", locked: "Locked", learning: "Learning", young: "Young", mature: "Mature" },
+    level: (l: number | null) => (l ? `N${l}` : "No level"),
+    allLevels: "All levels",
+    levels: "Levels",
+    levelLine: (started: number, unlocked: number, total: number) => `${n(started)} started · ${n(unlocked)} unlocked · ${n(total)} words`,
+    lockedBy: "Unlocks once you know ",
+    kanjiIn: "Kanji in this word",
+    notLearned: "not learned yet",
+    alsoRead: "Also read",
+    unlockedOf: (u: number, total: number) => `${n(u)} of ${n(total)} words unlocked`,
+    title: "Vocabulary",
+    intro: "A word becomes a card once you know all its kanji: easiest and most common first. So the vocabulary grows out of what you can already read.",
+    progress: (started: number, unlocked: number, total: number) => `${n(started)} started · ${n(unlocked)} unlocked of ${n(total)}`,
+    due: (x: number) => (x ? `${n(x)} to review today` : "Nothing to review today"),
+    none: "No words unlocked yet. Learn or calibrate some kanji first.",
+    next: "Next words",
+    practise: "Practise",
+    meaningQ: "What does it mean?",
+    readQ: "How is it read?",
+    typeQ: "Type the reading (romaji or kana)",
+    spellQ: "How is it written?",
+    meaningLabel: "Meaning",
+    readLabel: "Reading",
+    typeLabel: "Type",
+    spellLabel: "Spelling",
+    newWord: "New word",
+    means: (w: string, g: string) => `${w} means "${g}".`,
+    spelled: (w: string, r: string) => `${r} is written ${w}.`,
+  },
   stats: {
+    none: "Nothing to show yet.",
     title: "Stats",
     perDay: "Reviews, 14 days",
     retention: "Accuracy, 30 days",
@@ -201,6 +326,8 @@ export const en: Strings = {
   },
   settings: {
     title: "Settings",
+    name: "Your name",
+    namePlaceholder: "Optional, for the greeting on the home screen",
     perDay: "New kanji per day",
     style: "Reviews as",
     quiz: "Mixed quiz",
@@ -214,9 +341,7 @@ export const en: Strings = {
     exportTitle: "Export everything",
     exportHelp: "Your whole history as JSON. You're never locked in.",
     exportRun: "Export",
-    about: "About the data",
-    aboutText:
-      "Kanji, words and components from KANJIDIC2, JMdict, RADKFILE and KRADFILE, the property of the Electronic Dictionary Research and Development Group, used under the Group's licence (CC BY-SA 4.0). Stroke order from KanjiVG (CC BY-SA 3.0).",
+    about: "About and licences",
     language: "Language",
     languages: { da: "Dansk", en: "English" },
     close: "Close",

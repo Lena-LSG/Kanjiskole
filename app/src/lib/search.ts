@@ -37,3 +37,27 @@ export function search(q: string): Kanji[] {
   }
   return scored.sort((a, b) => b[0] - a[0] || a[1].i - b[1].i).map(([, k]) => k);
 }
+
+/**
+ * Filter words by spelling (kanji in the query must all occur), reading (romaji or kana, prefix) or English gloss
+ * (whole word). Keeps the teaching order of `words`, best matches first.
+ */
+export function searchWords<W extends { w: string; r: string; rs: string[]; g: string }>(q: string, words: readonly W[]): W[] {
+  const query = q.trim();
+  if (!query) return words as W[];
+  const chars = [...query].filter(isKanji);
+  if (chars.length) return words.filter((w) => chars.every((c) => w.w.includes(c)));
+  const latin = /[a-z]/i.test(query);
+  const kana = normalizeReading(latin ? toKana(query) : toHira(query));
+  const word = query.toLowerCase();
+  const re = latin && word.length >= 2 ? new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i") : null;
+  const scored: [number, number, W][] = [];
+  words.forEach((w, i) => {
+    let s = 0;
+    if (w.rs.includes(kana)) s = 3;
+    else if (kana && w.r.startsWith(kana)) s = 2;
+    if (re?.test(w.g)) s = Math.max(s, w.g.toLowerCase().split(/[;,] ?/).includes(word) ? 3.5 : 2.5);
+    if (s) scored.push([s, i, w]);
+  });
+  return scored.sort((a, b) => b[0] - a[0] || a[1] - b[1]).map(([, , w]) => w);
+}

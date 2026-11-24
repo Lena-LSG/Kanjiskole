@@ -25,11 +25,11 @@ export default function Blitz() {
   const [score, setScore] = useState<BlitzScore>({ score: 0, streak: 0 });
   const [misses, setMisses] = useState<string[]>([]);
   const [run, setRun] = useState(0);
-  const bestBefore = useRef(meta.blitzBest);
+  const [bestBefore, setBestBefore] = useState(meta.blitzBest); // the record to beat, as it was when this run began
   const mine = useMemo(() => [...cards.values()].filter(isStarted).length >= 20, [cards]);
 
   const start = () => {
-    bestBefore.current = meta.blitzBest;
+    setBestBefore(meta.blitzBest);
     setScore({ score: 0, streak: 0 });
     setMisses([]);
     setRun((r) => r + 1);
@@ -48,7 +48,7 @@ export default function Blitz() {
   };
 
   if (phase === "intro") return <Intro mine={mine} best={meta.blitzBest} onStart={start} />;
-  if (phase === "end") return <End score={score.score} best={bestBefore.current} misses={misses} cards={cards} onAgain={start} />;
+  if (phase === "end") return <End score={score.score} best={bestBefore} misses={misses} cards={cards} onAgain={start} />;
   return <Run key={run} cards={cards} best={meta.blitzBest} score={score} setScore={setScore} onMiss={miss} onEnd={end} misses={misses} />;
 }
 
@@ -72,9 +72,9 @@ function Run({ cards, best, score, setScore, onMiss, onEnd, misses }: {
   cards: ReadonlyMap<string, CardState>; best: number; score: BlitzScore; misses: string[];
   setScore: (s: BlitzScore) => void; onMiss: (k: string) => void; onEnd: (s: BlitzScore, misses: string[]) => void;
 }) {
-  const pool = useMemo(() => blitzPool(cards as Map<string, CardState>, data), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [pool] = useState(() => blitzPool(cards as Map<string, CardState>, data));
   const known = useKnown(cards);
-  const endAt = useRef(Date.now() + BLITZ_MS).current;
+  const [endAt] = useState(() => Date.now() + BLITZ_MS);
   const last = useRef<string | undefined>(undefined); // before the first next(), which reads it
   const [left, setLeft] = useState(BLITZ_MS);
   const [ex, setEx] = useState<Exercise>(() => next());

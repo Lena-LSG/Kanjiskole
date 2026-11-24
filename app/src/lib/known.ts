@@ -1,3 +1,4 @@
+// The set of kanji she has started, which decides which words are unlocked.
 import { isStarted, type CardState } from "@kanjiskole/core";
 import { useMemo } from "react";
 

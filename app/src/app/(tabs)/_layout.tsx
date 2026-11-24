@@ -1,3 +1,4 @@
+// The three tabs (home, kanji, statistics) behind the floating tab bar.
 import { Tabs } from "expo-router";
 import { TabBar } from "@/components/TabBar";
 import { C } from "@/theme";

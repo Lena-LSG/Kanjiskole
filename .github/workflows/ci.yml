@@ -1,7 +1,7 @@
 name: CI
 on:
+  # Every branch and pull request, so work is checked before it reaches `main`.
   push:
-    branches: [main]
   pull_request:
 
 permissions:
@@ -20,7 +20,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run audit
+      - run: npm run check:native
+      - run: npm run notices -- --check
       - run: npm run typecheck
+      - run: npm run lint
       - run: npm test
 
   web:
@@ -56,3 +59,12 @@ jobs:
       - run: npm ci
       - run: npm run data
       - run: git diff --exit-code assets/data
+
+  licences:
+    # Every file has a copyright and licence (REUSE spec), and every licence text is present.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: pipx run reuse==6.3.0 lint

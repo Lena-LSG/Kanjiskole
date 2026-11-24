@@ -1,3 +1,4 @@
+// The public API of @kanjiskole/core: all the learning logic, no UI.
 export * from "./blitz.ts";
 export * from "./cards.ts";
 export * from "./curriculum.ts";
@@ -9,8 +10,11 @@ export * from "./exercises.ts";
 export * from "./explain.ts";
 export * from "./importer.ts";
 export * from "./judge.ts";
+export * from "./kana-track.ts";
 export * from "./kana.ts";
 export * from "./rng.ts";
 export * from "./session.ts";
 export * from "./stats.ts";
 export type * from "./types.ts";
+export * from "./vocab.ts";
+export * from "./tracks.ts";

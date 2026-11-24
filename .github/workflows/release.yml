@@ -1,0 +1,69 @@
+name: Release
+# On a version tag, or run by hand with the version: publish a GitHub release (creating the tag on this commit) with
+# the notes from docs/releases/<tag>.md, the APK they link to (EAS artifacts expire, so it's copied here for good)
+# with its SHA-256, and the web build.
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. v1.0.0 (must match app.json)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release; nothing else
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+      - name: Work out the tag and check it matches the app version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          tag="${INPUT_VERSION:-$GITHUB_REF_NAME}"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "not a version tag: $tag"; exit 1; }
+          app=$(node -p "require('./app/app.json').expo.version")
+          [ "v$app" = "$tag" ] || { echo "tag $tag, app.json $app"; exit 1; }
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+
+      - name: Fetch the APK named in the release notes
+        run: |
+          notes="docs/releases/$TAG.md"
+          url=$(grep -oE 'https://expo\.dev/artifacts/eas/[A-Za-z0-9_-]+\.apk' "$notes" | head -1)
+          [ -n "$url" ] || { echo "no EAS APK link in $notes"; exit 1; }
+          name="kanjiskole-$TAG.apk"
+          curl -fsSL --proto '=https' "$url" -o "$name"
+          # A real APK is a zip with a manifest; an error page is not.
+          unzip -l "$name" AndroidManifest.xml > /dev/null
+          sha256sum "$name" > "$name.sha256"
+
+      - name: Build the web app
+        run: |
+          npx expo export -p web
+          (cd dist && zip -qr "../../kanjiskole-$TAG-web.zip" .)
+        working-directory: app
+        env: { EXPO_NO_TELEMETRY: "1", CI: "1" }
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" --target "$GITHUB_SHA" \
+            --title "Kanjiskole ${TAG#v}" \
+            --notes-file "docs/releases/$TAG.md" \
+            "kanjiskole-$TAG.apk" "kanjiskole-$TAG.apk.sha256" "kanjiskole-$TAG-web.zip" \
+            THIRD-PARTY-NOTICES.md

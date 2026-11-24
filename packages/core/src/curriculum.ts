@@ -26,23 +26,53 @@ const UNVOICE: Record<string, string> = Object.fromEntries(
   [..."がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ"].map((c, i) => [c, "かきくけこさしすせそたちつてとはひふへほはひふへほ"[i]!]),
 );
 
-export function wordDifficulty(w: Word, data: KanjiData): Difficulty {
+/** How one part of a word is read: why 時間 is じかん, 手紙 てがみ, 学校 がっこう, 今日 きょう. */
+export interface ReadingPart {
+  text: string;
+  reading: string;
+  /** plain: one of the kanji's own readings; rendaku/sokuon: a sound change of `base`; irregular: none of its
+   * readings; whole: one reading spread over several kanji (jukujikun); kana: written as it sounds. */
+  kind: "plain" | "rendaku" | "sokuon" | "irregular" | "whole" | "kana";
+  base?: string;
+}
+
+function kindOf(kanji: string, r: string, data: KanjiData): Pick<ReadingPart, "kind" | "base"> {
+  const listed = data.readingsOf(kanji);
+  if (listed.includes(r)) return { kind: "plain" };
+  const unvoiced = (UNVOICE[r[0]!] ?? r[0]) + r.slice(1);
+  if (unvoiced !== r && listed.includes(unvoiced)) return { kind: "rendaku", base: unvoiced };
+  const sokuonBase = r.endsWith("っ") && listed.find((l) => l.length === r.length && l.startsWith(r.slice(0, -1)) && "くきつち".includes(l.at(-1)!));
+  if (sokuonBase) return { kind: "sokuon", base: sokuonBase };
+  return { kind: "irregular" };
+}
+
+export function readingBreakdown(w: Word, data: KanjiData): ReadingPart[] {
   const chars = [...w.w];
-  const kanjiCount = chars.filter(isKanji).length;
-  if (!w.f || !w.f.length) {
-    // No alignment: a lone kanji read with one of its readings is plain; anything else we can't vouch for.
-    return kanjiCount === 1 && chars.length === 1 && data.readingsOf(w.w).includes(toHira(w.r)) ? 0 : 2;
+  if (!w.f?.length) {
+    if (chars.length === 1 && isKanji(w.w)) return [{ text: w.w, reading: w.r, ...kindOf(w.w, toHira(w.r), data) }];
+    return [{ text: w.w, reading: w.r, kind: "whole" }];
   }
+  const parts: ReadingPart[] = [];
+  for (let i = 0, j = 0; i < chars.length; ) {
+    const seg = w.f[j];
+    if (seg && seg[0] === i) {
+      const text = chars.slice(seg[0], seg[1]).join("");
+      parts.push(seg[1] - seg[0] > 1 ? { text, reading: seg[2], kind: "whole" } : { text, reading: seg[2], ...kindOf(text, seg[2], data) });
+      i = seg[1];
+      j++;
+    } else {
+      parts.push({ text: chars[i]!, reading: toHira(chars[i]!), kind: "kana" });
+      i++;
+    }
+  }
+  return parts;
+}
+
+export function wordDifficulty(w: Word, data: KanjiData): Difficulty {
   let worst: Difficulty = 0;
-  for (const [a, b, r] of w.f) {
-    if (b - a !== 1) return 2; // one reading over several kanji: jukujikun (今日 きょう)
-    const listed = data.readingsOf(chars[a]!);
-    if (listed.includes(r)) continue;
-    // Sound changes of a listed reading: voiced first kana (rendaku), or a final っ replacing く/き/つ/ち.
-    const unvoiced = (UNVOICE[r[0]!] ?? r[0]) + r.slice(1);
-    const sokuon = r.endsWith("っ") && listed.some((l) => l.length === r.length && l.startsWith(r.slice(0, -1)) && "くきつち".includes(l.at(-1)!));
-    if (listed.includes(unvoiced) || sokuon) worst = 1;
-    else return 2;
+  for (const p of readingBreakdown(w, data)) {
+    if (p.kind === "whole" || p.kind === "irregular") return 2;
+    if (p.kind === "rendaku" || p.kind === "sokuon") worst = 1;
   }
   return worst;
 }

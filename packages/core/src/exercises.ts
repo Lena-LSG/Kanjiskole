@@ -1,7 +1,6 @@
 // The five exercise types, as plain data. The app renders them; nothing here touches the UI.
 import type { KanjiData } from "./data.ts";
 import { lookalikes, readingOptions } from "./distractors.ts";
-import type { ExerciseKind } from "./events.ts";
 import { pick, shuffle, type Rng } from "./rng.ts";
 import type { Kanji, Word } from "./types.ts";
 
@@ -19,7 +18,7 @@ export type Exercise =
   | { kind: "read"; k: Kanji; word: Word; options: Option[] }
   | { kind: "type"; k: Kanji; word: Word };
 
-export type QuizKind = Exclude<ExerciseKind, "flash">;
+export type QuizKind = "mean" | "which" | "fill" | "read" | "type";
 
 export const WEIGHTS: Record<QuizKind, number> = { mean: 3, which: 2, read: 3, type: 2, fill: 3 };
 

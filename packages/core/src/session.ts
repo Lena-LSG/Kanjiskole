@@ -26,7 +26,7 @@ export interface SessionOptions {
 
 export function dueCards(cards: Map<string, CardState>, data: KanjiData, now: number, rolloverHour = DEFAULT_ROLLOVER): CardState[] {
   return [...cards.values()]
-    .filter((c) => isDue(c, now, rolloverHour))
+    .filter((c) => data.get(c.k) && isDue(c, now, rolloverHour)) // kanji only: kana have their own track
     .sort((a, b) => a.fsrs.due.getTime() - b.fsrs.due.getTime() || (data.get(a.k)?.i ?? 0) - (data.get(b.k)?.i ?? 0));
 }
 
@@ -43,11 +43,16 @@ export function newKanji(cards: Map<string, CardState>, data: KanjiData, n: numb
   return out;
 }
 
-/** New kanji first answered in the current study day. */
-export function newToday(events: readonly KanjiEvent[], now: number, rolloverHour = DEFAULT_ROLLOVER): number {
+/** New cards first answered in the current study day; `include` picks the track (kanji or kana). */
+export function newToday(
+  events: readonly KanjiEvent[],
+  now: number,
+  rolloverHour = DEFAULT_ROLLOVER,
+  include: (k: string) => boolean = () => true,
+): number {
   const today = studyDay(now, rolloverHour);
   const first = new Map<string, number>();
-  for (const e of events) if (e.t === "review" && (!first.has(e.k) || e.at < first.get(e.k)!)) first.set(e.k, e.at);
+  for (const e of events) if (e.t === "review" && include(e.k) && (!first.has(e.k) || e.at < first.get(e.k)!)) first.set(e.k, e.at);
   // An imported or calibrated card was never new here.
   const known = new Set(events.filter((e) => e.t === "import" || e.t === "calibrate").map((e) => e.k));
   let n = 0;
@@ -55,19 +60,23 @@ export function newToday(events: readonly KanjiEvent[], now: number, rolloverHou
   return n;
 }
 
-export function buildSession(cards: Map<string, CardState>, data: KanjiData, opts: SessionOptions): Item[] {
-  const due = opts.onlyNew ? [] : dueCards(cards, data, opts.now, opts.rolloverHour);
-  const news = newKanji(cards, data, opts.newLimit);
-  const review: Item["t"] = opts.style === "quiz" ? "quiz" : "flash";
-  const intro: Item["t"] = opts.style === "quiz" ? "intro" : "flash";
+/** Due reviews in order, a new card after every 4th review, the rest of the new cards at the end. */
+export function interleave(due: readonly string[], news: readonly string[], style: ReviewStyle): Item[] {
+  const review: Item["t"] = style === "quiz" ? "quiz" : "flash";
+  const intro: Item["t"] = style === "quiz" ? "intro" : "flash";
   const q: Item[] = [];
   let ni = 0;
-  due.forEach((c, i) => {
-    q.push({ k: c.k, t: review });
+  due.forEach((k, i) => {
+    q.push({ k, t: review });
     if ((i + 1) % 4 === 0 && ni < news.length) q.push({ k: news[ni++]!, t: intro });
   });
   while (ni < news.length) q.push({ k: news[ni++]!, t: intro });
   return q;
+}
+
+export function buildSession(cards: Map<string, CardState>, data: KanjiData, opts: SessionOptions): Item[] {
+  const due = opts.onlyNew ? [] : dueCards(cards, data, opts.now, opts.rolloverHour).map((c) => c.k);
+  return interleave(due, newKanji(cards, data, opts.newLimit), opts.style);
 }
 
 /** Put an item back three positions later (or at the end of a short queue). */

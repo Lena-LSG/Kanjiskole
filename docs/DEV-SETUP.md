@@ -17,7 +17,7 @@ What it took to get from a fresh clone to an APK, so the next machine is a check
 ## Clone and install
 
 ```
-git clone -b <branch> https://github.com/Lena-LSG/Kanji kanji
+git clone https://github.com/Lena-LSG/Kanjiskole kanji
 cd kanji
 npm ci
 npm test
@@ -27,8 +27,8 @@ npm test
 dependency genuinely needs a build step, run it explicitly rather than turning scripts back on globally.
 
 `npm ci` may warn that cached tarballs are corrupted and refresh them; that's npm healing its cache, and the
-lockfile hashes still verify. `npm audit` reports a high in zod under `@expo/cli`: accepted, see
-`scripts/audit-accepted.json`. Never `npm audit fix --force` (it downgrades Expo to SDK 51).
+lockfile hashes still verify. `npm audit` reports one moderate (minimatch, in Expo's build tooling): documented in
+`scripts/audit-accepted.json`. Never `npm audit fix --force`: it "fixes" things by downgrading Expo.
 
 ## Android build in the cloud (EAS)
 
@@ -40,16 +40,22 @@ npx eas-cli@latest init        # once; writes the project id into app.json, comm
 npx eas-cli@latest build -p android --profile preview
 ```
 
+From a Claude Code cloud session: use the **Kanji** environment (network: api.expo.dev, expo.dev,
+storage.googleapis.com; setup script runs `npm ci`). The Expo robot token "Claude (robot)" is saved there as a
+network secret for api.expo.dev, so the proxy adds it and no key exists in the repo or the session; the CLI only
+needs a placeholder: `EXPO_TOKEN=proxy-injected npx eas-cli@latest build -p android --profile preview
+--non-interactive --no-wait`. Revoke the robot token on expo.dev to cut that access.
+
 Let EAS generate and keep the keystore: every future update has to be signed with the same one.
 `eas build --local` does not run on Windows.
 
 ## Android on the device (local, no queue)
 
-Planned for the laptop, which already has the DANSK toolchain:
+For a second machine with a full Android toolchain:
 
 - Android Studio for the SDK, platform tools and an emulator; one JDK, with `JAVA_HOME` pointing at it (check the
   version React Native 0.86 requires before installing).
-- `npx expo run:android` from `app/` builds a development build and installs it over USB (S26 or Xperia, with USB
+- `npx expo run:android` from `app/` builds a development build and installs it over USB (with USB
   debugging on). After that, JS changes arrive through Metro in seconds.
 - A local release APK: `npx expo prebuild -p android`, then `gradlew assembleRelease` in `app/android`.
 

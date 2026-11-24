@@ -65,7 +65,7 @@ export default function Calibrate() {
               accessibilityState={{ selected: on }}
               accessibilityLabel={`${k.k}, ${k.m[0] ?? ""}`}
               onPress={() => setPicked((p) => { const n = new Set(p); if (n.has(k.k)) n.delete(k.k); else n.add(k.k); return n; })}
-              style={{ width: "18.4%", aspectRatio: 1, borderRadius: R.small, borderWidth: 1, borderColor: on ? C.ink : C.line, backgroundColor: on ? C.ink : C.surface, alignItems: "center", justifyContent: "center" }}
+              style={{ width: "18%", aspectRatio: 1, borderRadius: R.small, borderWidth: 1, borderColor: on ? C.ink : C.line, backgroundColor: on ? C.ink : C.surface, alignItems: "center", justifyContent: "center" }}
             >
               <J size={32} color={on ? C.bg : C.ink} style={{ lineHeight: 40 }}>{k.k}</J>
             </Pressable>

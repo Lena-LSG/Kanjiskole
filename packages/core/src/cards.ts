@@ -68,7 +68,7 @@ export function applyEvent(cards: Map<string, CardState>, e: KanjiEvent, f: FSRS
         ? { ...prev }
         : { k: e.k, fsrs: createEmptyCard(new Date(e.at)), needsTypedCheck: false, lapses: 0, firstSeen: e.at };
       const wasReview = c.fsrs.state === State.Review;
-      c.fsrs = f.next(c.fsrs, new Date(e.at), e.grade as Grade).card;
+      c.fsrs = f.next(c.fsrs, new Date(e.at), e.grade).card;
       if (e.grade === 1 && wasReview) c.lapses++;
       if (e.ex === "type" && e.ok) c.needsTypedCheck = false;
       c.queuedAt = undefined;

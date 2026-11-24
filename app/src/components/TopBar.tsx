@@ -1,3 +1,4 @@
+// The bar above a session: back, progress, and a count.
 import { View } from "react-native";
 import { C } from "@/theme";
 import { t } from "@/i18n";

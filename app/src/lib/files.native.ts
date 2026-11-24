@@ -1,3 +1,4 @@
+// Pick a text file and share one (import and export) on Android.
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
@@ -12,6 +13,6 @@ export async function saveText(name: string, text: string): Promise<void> {
   const f = new File(Paths.cache, name);
   if (f.exists) f.delete();
   f.create();
-  f.write(text);
+  await f.write(text); // async since SDK 58: finish writing before the share sheet reads it
   await Sharing.shareAsync(f.uri, { mimeType: "application/json", dialogTitle: name });
 }

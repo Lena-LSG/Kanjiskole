@@ -1,3 +1,4 @@
+// Randomness behind an interface, so tests and replays can be seeded.
 export type Rng = () => number;
 
 /** Small seeded PRNG (mulberry32), so tests and replays can be deterministic. */

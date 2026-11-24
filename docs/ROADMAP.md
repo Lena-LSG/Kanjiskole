@@ -4,17 +4,24 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
 
 ## Done
 - M1 core + data pipeline (2026-10-28)
-- M2 app shell, Android + web, offline; first EAS APK running on the S26 (2026-10-28)
+- M2 app shell, Android + web, offline; first EAS APK running on the phone (2026-10-28)
 - English UI option
+- Expo SDK 58 (2026-11-12): closes the URL-parsing advisories
+- Audio (2026-11-12): read-aloud, speaker buttons, listening exercises (item 7); native-speaker recordings for
+  4,497 words from Kanji alive, device voice for the rest
+- Next for audio: VOICEVOX for the uncovered words; self-host and hash the recordings in M3
+- Hvorfor? explains why the right answer is right, on every exercise type (item 1)
+- Vocabulary cards (2026-11-12): words unlock when their kanji are known (item 3)
+- Kana track (2026-11-12): hiragana and katakana with their own sessions, calibration and chart (item 6; words in
+  kana and listening come with audio, item 7)
 - Curriculum (2026-11-12): JLPT order with parts first, prompts limited to words she can read, difficulty that
   ramps with each card (item 5 below, apart from vocabulary cards)
-
-## Soon: Expo SDK 58
-- Two decode-uri-component advisories (one high, a URL-parsing DoS) are only fixed by expo-router 58. Upgrade the
-  whole SDK set from SDK 58's bundledNativeModules.json after the curriculum work; the acceptance expires 2026-12-15.
+- Kana and vocabulary hubs at kanji quality, extra new cards in every track, stats per track (2026-11-13)
+- **Release 1.0.0 (2026-11-13)**: licence audit (GPL-3.0 code, REUSE-compliant, measured third-party notices,
+  About screen with credits), second security pass (S15–S19), ESLint with type-aware and React hooks rules
 
 ## Security
-- Review of 2026-11-12: `docs/SECURITY-REVIEW.md`. Fixed S1–S7; Lena's settings (GitHub branch protection, push
+- Review of 2026-11-12, re-checked 2026-11-13: `docs/SECURITY-REVIEW.md`. Fixed S1–S9 and S15–S19; Lena's settings (GitHub branch protection, push
   protection, 2FA; Supabase sign-ups off and redirect allowlist) are listed there; M3 must meet its threat model.
 
 ## Next: M3 sync
@@ -22,7 +29,7 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
   `EXPO_PUBLIC_SUPABASE_ANON_KEY` as variables, network access to `*.supabase.co` and `api.supabase.com`.
 - Magic-link auth, events table with RLS, sync queue (union by id), RLS tests per table.
 - Web deploy to kanji.lenagibson.eu (GitHub Pages, SPA 404 fallback, CNAME to lena-lsg.github.io).
-- Local Android toolchain on the laptop (`npx expo run:android`), see DEV-SETUP.md.
+- Local Android toolchain on a second machine (`npx expo run:android`), see DEV-SETUP.md.
 
 ## Feedback from the first evening on the phone (2026-10-28)
 1. **Explain why the right answer is right**, not only what kind of slip the wrong one was, on every exercise type:
@@ -58,7 +65,7 @@ Where things stand and what's next. Newest decisions win over HANDOVER.md; see D
    ear once audio exists. Calibration can mark the whole track known in one tap.
 7. **Audio:** the device's Japanese text-to-speech (`expo-speech` on Android, the Web Speech API in the browser),
    offline where the voice is installed. Play the word on the answer screen, a "listen and choose" exercise, and
-   a speaker button on every word in the detail view. Check the S26 and Xperia have a Japanese voice installed.
+   a speaker button on every word in the detail view. Check the phone has a Japanese voice installed.
 
 ## A personal WaniKani replacement
 What WaniKani has that we still lack, in the order to build it:
